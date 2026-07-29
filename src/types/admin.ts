@@ -179,6 +179,49 @@ export type AccountTodayStats = {
   user_cost?: number;
 };
 
+export type UpstreamBillingProbeSnapshot = {
+  status: 'ok' | 'unsupported' | 'failed' | string;
+  data?: Record<string, unknown>;
+  received_at?: string;
+  fresh_until?: string;
+  last_attempt_at?: string;
+  next_probe_at?: string;
+  failure_count?: number;
+  http_status?: number;
+  last_error?: string;
+};
+
+export type UpstreamBillingProbeResult = {
+  account_id: number;
+  snapshot?: UpstreamBillingProbeSnapshot;
+  error?: string;
+};
+
+export type UpstreamBillingCostEstimate = {
+  standard_cost: number;
+  covered_standard_cost?: number;
+  uncovered_standard_cost?: number;
+  effective_rate_multiplier?: number;
+  estimated_upstream_cost?: number;
+  token_request_count?: number;
+  covered_token_request_count?: number;
+  uncovered_token_request_count?: number;
+  non_token_request_count?: number;
+  unknown_billing_mode_request_count?: number;
+  live_rate_request_count?: number;
+  cached_rate_request_count?: number;
+  status: 'estimated' | 'partial' | 'cached' | 'unavailable' | string;
+  reason?: string;
+  rate_observed_at?: string;
+};
+
+export type UpstreamBillingCost24hResponse = {
+  window_start: string;
+  window_end: string;
+  timezone: string;
+  costs: Record<string, UpstreamBillingCostEstimate>;
+};
+
 export type AdminAccount = {
   id: number;
   name: string;
@@ -195,7 +238,7 @@ export type AdminAccount = {
   last_used_at?: string | null;
   group_ids?: number[];
   groups?: AdminGroup[];
-  extra?: Record<string, string | number | boolean | null>;
+  extra?: Record<string, unknown>;
 };
 
 export type AccountType = 'apikey' | 'oauth' | 'setup-token' | 'upstream';
@@ -212,6 +255,7 @@ export type CreateAccountRequest = {
   priority?: number;
   rate_multiplier?: number;
   group_ids?: number[];
+  upstream_billing_probe_enabled?: boolean;
 };
 
 export type CreateUserRequest = {

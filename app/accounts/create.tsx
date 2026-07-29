@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { createAccount } from '@/src/services/admin';
+import { createAccount, probeUpstreamBilling } from '@/src/services/admin';
 import type { AccountType, CreateAccountRequest } from '@/src/types/admin';
 
 const colors = {
@@ -20,10 +20,14 @@ const colors = {
   muted: '#f7f1e6',
 };
 
-const PLATFORM_OPTIONS = ['anthropic', 'openai', 'gemini', 'sora', 'antigravity'];
+const PLATFORM_OPTIONS = ['anthropic', 'openai', 'grok', 'gemini', 'sora', 'antigravity'];
 const ACCOUNT_TYPE_OPTIONS: AccountType[] = ['apikey', 'oauth', 'setup-token', 'upstream'];
 type JsonScalar = string | number | boolean | null | undefined;
 type JsonRecord = Record<string, JsonScalar>;
+
+function supportsUpstreamBillingProbe(platform: string, type: string) {
+  return type === 'apikey' && ['anthropic', 'openai', 'grok'].includes(platform);
+}
 
 function toNumber(raw: string) {
   if (!raw.trim()) return undefined;
@@ -121,13 +125,21 @@ export default function CreateAdminAccountScreen() {
         rate_multiplier: toNumber(rateMultiplier),
         group_ids: toGroupIds(groupIds),
         extra,
+        upstream_billing_probe_enabled: supportsUpstreamBillingProbe(platform, type),
       };
 
       return createAccount(payload);
     },
-    onSuccess: () => {
+    onSuccess: async (account) => {
+      if (supportsUpstreamBillingProbe(account.platform, account.type)) {
+        try {
+          await probeUpstreamBilling(account.id);
+        } catch {
+          // Account creation remains successful even when its upstream does not support billing probes.
+        }
+      }
       setFormError(null);
-      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      await queryClient.invalidateQueries({ queryKey: ['accounts'] });
       router.replace('/(tabs)/accounts');
     },
     onError: (error) => {
