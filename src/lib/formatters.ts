@@ -24,6 +24,13 @@ export function formatTokenValue(value: number) {
   return formatCompactNumber(value, 1);
 }
 
+export function formatCacheHitRate(value: number | null | undefined, isLoading = false, hasError = false) {
+  if (isLoading && value === undefined) return '读取中';
+  if (hasError) return '读取失败';
+  if (value === null || value === undefined) return '暂无';
+  return `${value.toFixed(1)}%`;
+}
+
 export function formatDisplayTime(value?: string | null) {
   if (!value) {
     return '--';

@@ -55,9 +55,9 @@ function getErrorMessage(error: unknown) {
   if (error instanceof Error && error.message) {
     switch (error.message) {
       case 'BASE_URL_REQUIRED':
-        return '请先到服务器页填写服务地址。';
+        return '请先到设置页填写服务地址。';
       case 'ADMIN_API_KEY_REQUIRED':
-        return '请先到服务器页填写 Admin Token。';
+        return '请先到设置页填写 Admin Token。';
       default:
         return error.message;
     }

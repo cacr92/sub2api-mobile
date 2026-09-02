@@ -16,6 +16,7 @@ type ScreenShellProps = PropsWithChildren<{
   refreshing?: boolean;
   onRefresh?: () => void | Promise<void>;
   safeAreaEdges?: Edge[];
+  showHeader?: boolean;
 }>;
 
 function ScreenHeader({
@@ -30,11 +31,11 @@ function ScreenHeader({
       <View className="mt-4 flex-row items-start justify-between gap-4 px-1 py-1">
         <View className="flex-1">
           <View className="flex-row items-center gap-2">
-            <Text className="text-[20px] font-bold tracking-tight text-[#16181a]">{title}</Text>
+            <Text className="text-[20px] font-bold text-[#17201d]">{title}</Text>
             {titleAside}
           </View>
           {subtitle ? (
-            <Text numberOfLines={1} className="mt-1 text-[11px] leading-4 text-[#7d7468]">
+            <Text numberOfLines={1} className="mt-1 text-[11px] leading-4 text-[#65706c]">
               {subtitle}
             </Text>
           ) : null}
@@ -45,11 +46,11 @@ function ScreenHeader({
   }
 
   return (
-    <View className="mt-4 rounded-[24px] border border-[#e6dece] bg-[#fbf8f2] px-4 py-4">
+    <View className="mt-4 rounded-[8px] border border-[#dfe5e1] bg-white px-4 py-4">
       <View className="flex-row items-start justify-between gap-4">
         <View className="flex-1">
-          <Text className="text-[24px] font-bold tracking-tight text-[#16181a]">{title}</Text>
-          <Text numberOfLines={1} className="mt-1 text-xs leading-4 text-[#9a9082]">
+          <Text className="text-[24px] font-bold text-[#17201d]">{title}</Text>
+          <Text numberOfLines={1} className="mt-1 text-xs leading-4 text-[#65706c]">
             {subtitle}
           </Text>
         </View>
@@ -73,12 +74,13 @@ export function ScreenShell({
   refreshing = false,
   onRefresh,
   safeAreaEdges = ['top', 'bottom'],
+  showHeader = true,
 }: ScreenShellProps) {
   if (!scroll) {
     return (
-      <SafeAreaView edges={safeAreaEdges} style={{ flex: 1, backgroundColor: '#f4efe4' }}>
+      <SafeAreaView edges={safeAreaEdges} style={{ flex: 1, backgroundColor: '#f3f5f3' }}>
         <View className={`flex-1 ${horizontalInsetClassName} ${bottomInsetClassName}`}>
-          <ScreenHeader title={title} subtitle={subtitle} titleAside={titleAside} right={right} variant={variant} />
+          {showHeader ? <ScreenHeader title={title} subtitle={subtitle} titleAside={titleAside} right={right} variant={variant} /> : null}
           <View className={`flex-1 ${contentGapClassName}`}>{children}</View>
         </View>
       </SafeAreaView>
@@ -86,14 +88,14 @@ export function ScreenShell({
   }
 
   return (
-    <SafeAreaView edges={safeAreaEdges} style={{ flex: 1, backgroundColor: '#f4efe4' }}>
+    <SafeAreaView edges={safeAreaEdges} style={{ flex: 1, backgroundColor: '#f3f5f3' }}>
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
         refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#1d5f55" /> : undefined}
       >
         <View className={`${horizontalInsetClassName} ${bottomInsetClassName}`}>
-          <ScreenHeader title={title} subtitle={subtitle} titleAside={titleAside} right={right} variant={variant} />
+          {showHeader ? <ScreenHeader title={title} subtitle={subtitle} titleAside={titleAside} right={right} variant={variant} /> : null}
           <View className={contentGapClassName}>{children}</View>
         </View>
       </ScrollView>

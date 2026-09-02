@@ -1,5 +1,5 @@
-import { AccountsListScreen } from '@/src/screens/accounts-list-screen';
+import { Redirect } from 'expo-router';
 
 export default function AccountOverviewListScreen() {
-  return <AccountsListScreen safeAreaEdges={['bottom']} />;
+  return <Redirect href="/(tabs)/accounts" />;
 }

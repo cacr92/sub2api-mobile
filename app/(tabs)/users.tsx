@@ -90,9 +90,9 @@ function getErrorMessage(error: unknown) {
   if (error instanceof Error && error.message) {
     switch (error.message) {
       case 'BASE_URL_REQUIRED':
-        return '请先到服务器页填写服务地址。';
+        return '请先到设置页填写服务地址。';
       case 'ADMIN_API_KEY_REQUIRED':
-        return '请先到服务器页填写 Admin Token。';
+        return '请先到设置页填写 Admin Token。';
       default:
         return error.message;
     }
@@ -229,12 +229,12 @@ export default function UsersScreen() {
         {!hasAccount ? (
           <View style={{ marginTop: 10, backgroundColor: colors.card, borderRadius: 18, padding: 16 }}>
             <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text }}>未连接服务器</Text>
-            <Text style={{ marginTop: 8, fontSize: 14, lineHeight: 22, color: colors.subtext }}>请先到“服务器”页完成连接，再查看用户列表。</Text>
+            <Text style={{ marginTop: 8, fontSize: 14, lineHeight: 22, color: colors.subtext }}>请先到“设置”页完成连接，再查看用户列表。</Text>
             <Pressable
               style={{ marginTop: 14, alignSelf: 'flex-start', backgroundColor: colors.primary, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 12 }}
               onPress={() => router.push('/settings')}
             >
-              <Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>去配置服务器</Text>
+              <Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>打开设置</Text>
             </Pressable>
           </View>
         ) : usersQuery.isLoading ? (

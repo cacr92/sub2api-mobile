@@ -24,10 +24,11 @@ export type DashboardStats = {
   normal_accounts: number;
   error_accounts: number;
   total_requests: number;
-  total_cost: number;
+  total_cost: number; // 标准计费
   total_tokens: number;
   today_requests: number;
-  today_cost: number;
+  today_cost: number; // 今日标准计费
+  today_actual_cost: number; // 今日实际扣除
   today_tokens: number;
   today_input_tokens?: number;
   today_output_tokens?: number;
@@ -78,10 +79,18 @@ export type UsageStats = {
   total_tokens?: number;
   total_input_tokens?: number;
   total_output_tokens?: number;
+  total_cache_tokens?: number;
+  total_cache_read_tokens?: number;
+  total_cache_creation_tokens?: number;
   total_cost?: number;
   total_actual_cost?: number;
   total_account_cost?: number;
   average_duration_ms?: number;
+};
+
+export type AdminUsageLog = {
+  account_id: number;
+  first_token_ms?: number | null;
 };
 
 export type DashboardSnapshot = {
@@ -97,10 +106,238 @@ export type DashboardSnapshot = {
   }>;
 };
 
+/** 模型广场中一档按 Token 区间展示的价格。价格单位与服务端一致，均为 USD/token。 */
+export type ModelPlazaPricingInterval = {
+  min_tokens: number;
+  max_tokens: number | null;
+  tier_label?: string;
+  input_price: number | null;
+  output_price: number | null;
+  cache_write_price: number | null;
+  cache_read_price: number | null;
+  per_request_price: number | null;
+};
+
+/** 模型广场模型的用户侧定价字段白名单。 */
+export type ModelPlazaPricing = {
+  billing_mode: string;
+  input_price: number | null;
+  output_price: number | null;
+  cache_write_price: number | null;
+  cache_read_price: number | null;
+  image_input_price: number | null;
+  image_output_price: number | null;
+  per_request_price: number | null;
+  intervals: ModelPlazaPricingInterval[];
+};
+
+/** LiteLLM 官方参考价，字段为空表示官方数据未覆盖。 */
+export type ModelPlazaOfficialPricing = {
+  input_price: number | null;
+  output_price: number | null;
+  cache_write_price: number | null;
+  cache_write_1h_price?: number | null;
+  cache_read_price: number | null;
+};
+
+export type ModelPlazaModel = {
+  name: string;
+  platform: string;
+  pricing: ModelPlazaPricing | null;
+  official_pricing: ModelPlazaOfficialPricing | null;
+};
+
+export type ModelPlazaGroup = {
+  id: number;
+  name: string;
+  description: string;
+  platform: string;
+  subscription_type: string;
+  rate_multiplier: number;
+  user_rate_multiplier?: number;
+  peak_rate_enabled: boolean;
+  peak_start: string;
+  peak_end: string;
+  peak_rate_multiplier: number;
+  is_exclusive: boolean;
+  models: ModelPlazaModel[];
+};
+
+export type ModelPlazaResponse = {
+  description: string;
+  groups: ModelPlazaGroup[];
+};
+
+export type ServerIdentity = {
+  version: string;
+  latency_ms: number;
+  checked_at: string;
+};
+
+export type OpsRateSummary = {
+  current: number;
+  peak: number;
+  avg: number;
+};
+
+export type OpsPercentiles = {
+  p50_ms?: number | null;
+  p90_ms?: number | null;
+  p95_ms?: number | null;
+  p99_ms?: number | null;
+  avg_ms?: number | null;
+  max_ms?: number | null;
+};
+
+export type OpsSystemMetricsSnapshot = {
+  id: number;
+  created_at: string;
+  window_minutes: number;
+  cpu_usage_percent?: number | null;
+  memory_used_mb?: number | null;
+  memory_total_mb?: number | null;
+  memory_usage_percent?: number | null;
+  db_ok?: boolean | null;
+  redis_ok?: boolean | null;
+  db_max_open_conns?: number | null;
+  redis_pool_size?: number | null;
+  redis_conn_total?: number | null;
+  redis_conn_idle?: number | null;
+  db_conn_active?: number | null;
+  db_conn_idle?: number | null;
+  db_conn_waiting?: number | null;
+  goroutine_count?: number | null;
+  concurrency_queue_depth?: number | null;
+  account_switch_count?: number | null;
+};
+
+export type OpsJobHeartbeat = {
+  job_name: string;
+  last_run_at?: string | null;
+  last_success_at?: string | null;
+  last_error_at?: string | null;
+  last_error?: string | null;
+  last_duration_ms?: number | null;
+  last_result?: string | null;
+  updated_at: string;
+};
+
+export type OpsDashboardOverview = {
+  start_time: string;
+  end_time: string;
+  platform: string;
+  group_id?: number | null;
+  health_score?: number;
+  system_metrics?: OpsSystemMetricsSnapshot | null;
+  job_heartbeats?: OpsJobHeartbeat[] | null;
+  success_count: number;
+  error_count_total: number;
+  business_limited_count: number;
+  error_count_sla: number;
+  request_count_total: number;
+  request_count_sla: number;
+  token_consumed: number;
+  sla: number;
+  error_rate: number;
+  upstream_error_rate: number;
+  upstream_error_count_excl_429_529: number;
+  upstream_429_count: number;
+  upstream_529_count: number;
+  qps: OpsRateSummary;
+  tps: OpsRateSummary;
+  duration: OpsPercentiles;
+  ttft: OpsPercentiles;
+};
+
+export type OpsConcurrencyInfo = {
+  platform: string;
+  current_in_use: number;
+  max_capacity: number;
+  load_percentage: number;
+  waiting_in_queue: number;
+};
+
+export type OpsGroupConcurrencyInfo = {
+  group_id: number;
+  group_name: string;
+  platform: string;
+  current_in_use: number;
+  max_capacity: number;
+  load_percentage: number;
+  waiting_in_queue: number;
+};
+
+export type OpsActiveModelConcurrencyInfo = {
+  model: string;
+  current_in_use: number;
+};
+
+export type OpsAccountConcurrencyInfo = {
+  account_id: number;
+  account_name?: string;
+  platform: string;
+  group_id: number;
+  group_name: string;
+  current_in_use: number;
+  max_capacity: number;
+  load_percentage: number;
+  waiting_in_queue: number;
+  active_models?: OpsActiveModelConcurrencyInfo[];
+  unattributed_in_use?: number;
+};
+
+export type OpsConcurrencyStats = {
+  enabled: boolean;
+  platform: Record<string, OpsConcurrencyInfo>;
+  group: Record<string, OpsGroupConcurrencyInfo>;
+  account: Record<string, OpsAccountConcurrencyInfo>;
+  timestamp?: string;
+};
+
+export type OverloadCooldownSettings = {
+  enabled: boolean;
+  cooldown_minutes: number;
+};
+
+export type RateLimit429CooldownSettings = {
+  enabled: boolean;
+  cooldown_seconds: number;
+};
+
+export type StreamTimeoutAction = 'temp_unsched' | 'error' | 'none';
+
+export type StreamTimeoutSettings = {
+  enabled: boolean;
+  action: StreamTimeoutAction;
+  temp_unsched_minutes: number;
+  threshold_count: number;
+  threshold_window_minutes: number;
+};
+
 export type AdminSettings = {
   site_name?: string;
+  registration_enabled: boolean;
+  email_verify_enabled: boolean;
+  password_reset_enabled: boolean;
+  default_concurrency: number;
+  channel_monitor_enabled: boolean;
+  model_plaza_enabled?: boolean;
+  model_plaza_require_auth?: boolean;
+  model_plaza_description?: string;
   [key: string]: string | number | boolean | null | string[] | undefined;
 };
+
+export type AdminSettingsUpdate = Partial<Pick<
+  AdminSettings,
+  | 'registration_enabled'
+  | 'email_verify_enabled'
+  | 'password_reset_enabled'
+  | 'default_concurrency'
+  | 'channel_monitor_enabled'
+  | 'model_plaza_enabled'
+  | 'model_plaza_require_auth'
+  | 'model_plaza_description'
+>>;
 
 export type AdminUser = {
   id: number;
@@ -171,12 +408,28 @@ export type AdminGroup = {
   updated_at?: string;
 };
 
+export type GroupCapacitySummary = {
+  group_id: number;
+  concurrency_used: number;
+  concurrency_max: number;
+  sessions_used: number;
+  sessions_max: number;
+  rpm_used: number;
+  rpm_max: number;
+};
+
 export type AccountTodayStats = {
   requests: number;
   tokens: number;
   cost: number;
   standard_cost?: number;
   user_cost?: number;
+  recent_first_token_ms?: Array<number | null>;
+};
+
+export type AccountTodayStatsBatchResponse = {
+  stats: Record<string, AccountTodayStats>;
+  first_token_stats_error?: string;
 };
 
 export type UpstreamBillingProbeSnapshot = {
@@ -197,6 +450,13 @@ export type UpstreamBillingProbeResult = {
   error?: string;
 };
 
+export type UpstreamBillingCostRateSegment = {
+  rate_multiplier: number;
+  token_request_count: number;
+  standard_cost: number;
+  estimated_upstream_cost: number;
+};
+
 export type UpstreamBillingCostEstimate = {
   standard_cost: number;
   covered_standard_cost?: number;
@@ -210,10 +470,37 @@ export type UpstreamBillingCostEstimate = {
   unknown_billing_mode_request_count?: number;
   live_rate_request_count?: number;
   cached_rate_request_count?: number;
+  rate_segments?: UpstreamBillingCostRateSegment[];
+  models?: UpstreamBillingCostModelEstimate[];
   status: 'estimated' | 'partial' | 'cached' | 'unavailable' | string;
   reason?: string;
   rate_observed_at?: string;
 };
+
+export type UpstreamBillingCostModelEstimate = {
+  model: string;
+  requests: number;
+  input_tokens: number;
+  output_tokens: number;
+  cache_creation_tokens: number;
+  cache_read_tokens: number;
+  total_tokens: number;
+  standard_cost: number;
+  covered_standard_cost?: number;
+  uncovered_standard_cost?: number;
+  effective_rate_multiplier?: number;
+  estimated_upstream_cost?: number;
+  token_request_count?: number;
+  covered_token_request_count?: number;
+  uncovered_token_request_count?: number;
+  non_token_request_count?: number;
+  unknown_billing_mode_request_count?: number;
+  live_rate_request_count?: number;
+  cached_rate_request_count?: number;
+  rate_segments?: UpstreamBillingCostRateSegment[];
+  status: 'estimated' | 'partial' | 'cached' | 'unavailable' | string;
+  reason?: string;
+}
 
 export type UpstreamBillingCost24hResponse = {
   window_start: string;
@@ -225,6 +512,7 @@ export type UpstreamBillingCost24hResponse = {
 export type AdminAccount = {
   id: number;
   name: string;
+  notes?: string | null;
   platform: string;
   type: string;
   status?: string;
@@ -232,8 +520,37 @@ export type AdminAccount = {
   priority?: number;
   concurrency?: number;
   current_concurrency?: number;
+  load_factor?: number | null;
   rate_multiplier?: number;
   error_message?: string;
+  rate_limited_at?: string | null;
+  rate_limit_reset_at?: string | null;
+  overload_until?: string | null;
+  temp_unschedulable_until?: string | null;
+  temp_unschedulable_reason?: string | null;
+  expires_at?: number | string | null;
+  auto_pause_on_expired?: boolean;
+  session_window_start?: string | null;
+  session_window_end?: string | null;
+  session_window_status?: string | null;
+  window_cost_limit?: number | null;
+  window_cost_sticky_reserve?: number | null;
+  current_window_cost?: number | null;
+  max_sessions?: number | null;
+  active_sessions?: number | null;
+  session_idle_timeout_minutes?: number | null;
+  base_rpm?: number | null;
+  current_rpm?: number | null;
+  rpm_strategy?: string | null;
+  rpm_sticky_buffer?: number | null;
+  quota_limit?: number | null;
+  quota_used?: number | null;
+  quota_daily_limit?: number | null;
+  quota_daily_used?: number | null;
+  quota_weekly_limit?: number | null;
+  quota_weekly_used?: number | null;
+  quota_daily_reset_at?: string | null;
+  quota_weekly_reset_at?: string | null;
   updated_at?: string;
   last_used_at?: string | null;
   group_ids?: number[];

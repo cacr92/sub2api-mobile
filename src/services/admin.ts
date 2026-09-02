@@ -2,11 +2,14 @@ import { z } from 'zod';
 
 import { adminFetch, adminFetchSse } from '@/src/lib/admin-fetch';
 import type {
+  AdminUsageLog,
   AccountTodayStats,
+  AccountTodayStatsBatchResponse,
   AdminAccount,
   AdminApiKey,
   AdminGroup,
   AdminSettings,
+  AdminSettingsUpdate,
   AdminUser,
   BalanceOperation,
   DashboardModelStats,
@@ -15,7 +18,15 @@ import type {
   DashboardTrend,
   CreateAccountRequest,
   CreateUserRequest,
+  GroupCapacitySummary,
+  ModelPlazaResponse,
+  OpsConcurrencyStats,
+  OpsDashboardOverview,
+  OverloadCooldownSettings,
   PaginatedData,
+  RateLimit429CooldownSettings,
+  ServerIdentity,
+  StreamTimeoutSettings,
   UsageStats,
   UserUsageSummary,
   UpstreamBillingCost24hResponse,
@@ -161,8 +172,77 @@ export function getDashboardStats() {
   return adminFetch<DashboardStats>('/api/v1/admin/dashboard/stats');
 }
 
+export async function getServerIdentity(): Promise<ServerIdentity> {
+  const startedAt = Date.now();
+  const result = await adminFetch<{ version: string }>('/api/v1/admin/system/version');
+
+  return {
+    version: result.version,
+    latency_ms: Math.max(0, Date.now() - startedAt),
+    checked_at: new Date().toISOString(),
+  };
+}
+
+export function getOpsDashboardOverview(timeRange: '5m' | '30m' | '1h' | '6h' | '24h' = '1h') {
+  return adminFetch<OpsDashboardOverview>(
+    `/api/v1/admin/ops/dashboard/overview${buildQuery({ time_range: timeRange, mode: 'auto' })}`
+  );
+}
+
+export function getOpsConcurrencyStats() {
+  return adminFetch<OpsConcurrencyStats>('/api/v1/admin/ops/concurrency');
+}
+
 export function getAdminSettings() {
   return adminFetch<AdminSettings>('/api/v1/admin/settings');
+}
+
+/**
+ * 读取服务端模型广场。该接口不是 admin 路由，但手机端使用已配置的
+ * Admin Key 作为统一连接凭据；服务端仍会按模型广场开关和登录要求裁剪结果。
+ */
+export function getModelPlaza() {
+  return adminFetch<ModelPlazaResponse>('/api/v1/model-plaza');
+}
+
+export function updateAdminSettings(settings: AdminSettingsUpdate) {
+  return adminFetch<AdminSettings>('/api/v1/admin/settings', {
+    method: 'PUT',
+    body: JSON.stringify(settings),
+  });
+}
+
+export function getOverloadCooldownSettings() {
+  return adminFetch<OverloadCooldownSettings>('/api/v1/admin/settings/overload-cooldown');
+}
+
+export function updateOverloadCooldownSettings(settings: OverloadCooldownSettings) {
+  return adminFetch<OverloadCooldownSettings>('/api/v1/admin/settings/overload-cooldown', {
+    method: 'PUT',
+    body: JSON.stringify(settings),
+  });
+}
+
+export function getRateLimit429CooldownSettings() {
+  return adminFetch<RateLimit429CooldownSettings>('/api/v1/admin/settings/rate-limit-429-cooldown');
+}
+
+export function updateRateLimit429CooldownSettings(settings: RateLimit429CooldownSettings) {
+  return adminFetch<RateLimit429CooldownSettings>('/api/v1/admin/settings/rate-limit-429-cooldown', {
+    method: 'PUT',
+    body: JSON.stringify(settings),
+  });
+}
+
+export function getStreamTimeoutSettings() {
+  return adminFetch<StreamTimeoutSettings>('/api/v1/admin/settings/stream-timeout');
+}
+
+export function updateStreamTimeoutSettings(settings: StreamTimeoutSettings) {
+  return adminFetch<StreamTimeoutSettings>('/api/v1/admin/settings/stream-timeout', {
+    method: 'PUT',
+    body: JSON.stringify(settings),
+  });
 }
 
 export function getDashboardTrend(params: {
@@ -200,8 +280,10 @@ export function getDashboardSnapshot(params: {
 }
 
 export function getUsageStats(params: {
-  start_date: string;
-  end_date: string;
+  start_date?: string;
+  end_date?: string;
+  period?: string;
+  timezone?: string;
   user_id?: number;
   account_id?: number;
   group_id?: number;
@@ -297,6 +379,10 @@ export function getGroup(groupId: number) {
   return adminFetch<AdminGroup>(`/api/v1/admin/groups/${groupId}`);
 }
 
+export function getGroupCapacitySummary() {
+  return adminFetch<GroupCapacitySummary[]>('/api/v1/admin/groups/capacity-summary');
+}
+
 const ACCOUNTS_PAGE_SIZE = 1000;
 const ACCOUNTS_PAGE_BATCH_SIZE = 4;
 
@@ -333,6 +419,13 @@ export async function listAccounts(search = '') {
 
 export function getAccount(accountId: number) {
   return adminFetch<AdminAccount>(`/api/v1/admin/accounts/${accountId}`);
+}
+
+export function recoverAccountState(accountId: number) {
+  return adminFetch<AdminAccount>(`/api/v1/admin/accounts/${accountId}/recover-state`, {
+    method: 'POST',
+    body: JSON.stringify({}),
+  });
 }
 
 export function createAccount(body: CreateAccountRequest) {
@@ -376,10 +469,119 @@ export function getAccountTodayStats(accountId: number) {
 }
 
 export function getAccountTodayStatsBatch(accountIds: number[]) {
-  return adminFetch<{ stats: Record<string, AccountTodayStats> }>('/api/v1/admin/accounts/today-stats/batch', {
+  return adminFetch<AccountTodayStatsBatchResponse>('/api/v1/admin/accounts/today-stats/batch', {
     method: 'POST',
     body: JSON.stringify({ account_ids: accountIds }),
   });
+}
+
+const FIRST_TOKEN_USAGE_PAGE_SIZE = 3;
+const FIRST_TOKEN_USAGE_ACCOUNT_BATCH_SIZE = 4;
+
+function getShanghaiDate(offsetDays = 0) {
+  const shanghaiNow = new Date(Date.now() + 8 * 60 * 60 * 1000);
+  shanghaiNow.setUTCDate(shanghaiNow.getUTCDate() + offsetDays);
+  return shanghaiNow.toISOString().slice(0, 10);
+}
+
+function hasFirstTokenStats(stats: AccountTodayStats | undefined) {
+  return stats != null && Object.prototype.hasOwnProperty.call(stats, 'recent_first_token_ms');
+}
+
+function normalizeFirstTokenMs(value: unknown): number | null {
+  if (value === null || value === undefined || value === '') return null;
+
+  const numeric = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(numeric) && numeric >= 0 ? numeric : null;
+}
+
+function getCacheHitRate(stats: UsageStats) {
+  const inputTokens = normalizeFirstTokenMs(stats.total_input_tokens);
+  const cacheReadTokens = normalizeFirstTokenMs(stats.total_cache_read_tokens);
+  const cacheCreationTokens = normalizeFirstTokenMs(stats.total_cache_creation_tokens);
+
+  if (inputTokens === null || cacheReadTokens === null || cacheCreationTokens === null) return null;
+
+  const promptTokens = inputTokens + cacheReadTokens + cacheCreationTokens;
+  return promptTokens > 0 ? Math.min(100, (cacheReadTokens / promptTokens) * 100) : null;
+}
+
+export async function getAccountTodayCacheHitRateBatch(accountIds: number[]) {
+  const normalizedIds = normalizeAccountIds(accountIds);
+  const result: Record<string, number | null> = {};
+
+  for (let start = 0; start < normalizedIds.length; start += FIRST_TOKEN_USAGE_ACCOUNT_BATCH_SIZE) {
+    const batch = normalizedIds.slice(start, start + FIRST_TOKEN_USAGE_ACCOUNT_BATCH_SIZE);
+    const stats = await Promise.all(batch.map(async (accountId) => ({
+      accountId,
+      stats: await getUsageStats({ account_id: accountId, period: 'today', timezone: 'Asia/Shanghai' }),
+    })));
+
+    stats.forEach(({ accountId, stats: usageStats }) => {
+      result[`${accountId}`] = getCacheHitRate(usageStats);
+    });
+  }
+
+  return result;
+}
+
+function getTodayUsagePage(accountId: number) {
+  return adminFetch<PaginatedData<AdminUsageLog>>(`/api/v1/admin/usage${buildQuery({
+    page: 1,
+    page_size: FIRST_TOKEN_USAGE_PAGE_SIZE,
+    account_id: accountId,
+    start_date: getShanghaiDate(),
+    end_date: getShanghaiDate(1),
+    sort_by: 'created_at',
+    sort_order: 'desc',
+    timezone: 'Asia/Shanghai',
+  })}`);
+}
+
+async function getFirstTokenStatsFromUsage(accountIds: number[]) {
+  const result: Record<string, Pick<AccountTodayStats, 'recent_first_token_ms'>> = {};
+
+  for (let start = 0; start < accountIds.length; start += FIRST_TOKEN_USAGE_ACCOUNT_BATCH_SIZE) {
+    const batch = accountIds.slice(start, start + FIRST_TOKEN_USAGE_ACCOUNT_BATCH_SIZE);
+    const logs = await Promise.all(batch.map(async (accountId) => ({
+      accountId,
+      items: (await getTodayUsagePage(accountId)).items,
+    })));
+
+    logs.forEach(({ accountId, items }) => {
+      result[`${accountId}`] = {
+        recent_first_token_ms: items
+          .filter((item) => item.account_id === accountId)
+          .slice(0, FIRST_TOKEN_USAGE_PAGE_SIZE)
+          .map((item) => normalizeFirstTokenMs(item.first_token_ms)),
+      };
+    });
+  }
+
+  return result;
+}
+
+export async function getAccountTodayStatsBatchWithUsageFallback(accountIds: number[]) {
+  const normalizedIds = normalizeAccountIds(accountIds);
+  const batch = await getAccountTodayStatsBatch(normalizedIds);
+  const fallbackIds = normalizedIds.filter((accountId) => !hasFirstTokenStats(batch.stats[`${accountId}`]));
+
+  if (fallbackIds.length === 0) return batch;
+
+  try {
+    const fallbackStats = await getFirstTokenStatsFromUsage(fallbackIds);
+    const stats = { ...batch.stats };
+    fallbackIds.forEach((accountId) => {
+      const key = `${accountId}`;
+      stats[key] = { ...(stats[key] ?? { requests: 0, tokens: 0, cost: 0 }), ...fallbackStats[key] };
+    });
+    return { ...batch, stats };
+  } catch (error) {
+    return {
+      ...batch,
+      first_token_stats_error: error instanceof Error ? error.message : 'REQUEST_FAILED',
+    };
+  }
 }
 
 const UPSTREAM_BILLING_COST_BATCH_SIZE = 1000;

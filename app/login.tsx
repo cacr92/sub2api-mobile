@@ -79,7 +79,7 @@ export default function LoginScreen() {
           <View style={{ gap: 8 }}>
             <Text style={{ fontSize: 34, fontWeight: '800', color: colors.text }}>管理员入口</Text>
             <Text style={{ fontSize: 14, lineHeight: 22, color: colors.subtext }}>
-              首次进入请填写服务器地址和 Admin Key。连接成功后即可进入应用，并在“服务器”页管理多个服务器。
+              首次进入请填写服务器地址和 Admin Key。连接成功后即可进入应用，并在“设置”页管理多个服务器。
             </Text>
           </View>
 

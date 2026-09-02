@@ -30,7 +30,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryClientProvider client={queryClient}>
         {!isReady ? (
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f4efe4' }}>
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f3f5f3' }}>
             <ActivityIndicator color="#1d5f55" />
           </View>
         ) : (
@@ -46,7 +46,7 @@ export default function RootLayout() {
                 title: '用户详情',
                 headerBackTitle: '返回',
                 headerTintColor: '#16181a',
-                headerStyle: { backgroundColor: '#f4efe4' },
+                headerStyle: { backgroundColor: '#f3f5f3' },
                 headerShadowVisible: false,
               }}
             />
@@ -59,7 +59,7 @@ export default function RootLayout() {
                 title: '添加账号',
                 headerBackTitle: '返回',
                 headerTintColor: '#16181a',
-                headerStyle: { backgroundColor: '#f4efe4' },
+                headerStyle: { backgroundColor: '#f3f5f3' },
                 headerShadowVisible: false,
               }}
             />
@@ -72,7 +72,7 @@ export default function RootLayout() {
                 title: '添加用户',
                 headerBackTitle: '返回',
                 headerTintColor: '#16181a',
-                headerStyle: { backgroundColor: '#f4efe4' },
+                headerStyle: { backgroundColor: '#f3f5f3' },
                 headerShadowVisible: false,
               }}
             />
@@ -85,7 +85,7 @@ export default function RootLayout() {
                 title: '添加账号',
                 headerBackTitle: '返回',
                 headerTintColor: '#16181a',
-                headerStyle: { backgroundColor: '#f4efe4' },
+                headerStyle: { backgroundColor: '#f3f5f3' },
                 headerShadowVisible: false,
               }}
             />
@@ -98,7 +98,7 @@ export default function RootLayout() {
                 title: '账号清单',
                 headerBackTitle: '返回',
                 headerTintColor: '#16181a',
-                headerStyle: { backgroundColor: '#f4efe4' },
+                headerStyle: { backgroundColor: '#f3f5f3' },
                 headerShadowVisible: false,
               }}
             />
