@@ -9,6 +9,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { queryClient } from '@/src/lib/query-client';
 import { markPerformance } from '@/src/lib/performance';
 import { adminConfigState, hydrateAdminConfig } from '@/src/store/admin-config';
+import { cchConfigState, hydrateCchConfig } from '@/src/store/cch-config';
+import { hydrateServiceMode, serviceModeState } from '@/src/store/service-mode';
 
 const { useSnapshot } = require('valtio/react');
 
@@ -18,14 +20,16 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const config = useSnapshot(adminConfigState);
+  const cchConfig = useSnapshot(cchConfigState);
+  const serviceMode = useSnapshot(serviceModeState);
 
   useEffect(() => {
-    hydrateAdminConfig()
+    Promise.all([hydrateAdminConfig(), hydrateCchConfig(), hydrateServiceMode()])
       .then(() => markPerformance('config_hydrated'))
       .catch(() => undefined);
   }, []);
 
-  const isReady = config.hydrated;
+  const isReady = config.hydrated && cchConfig.hydrated && serviceMode.hydrated;
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryClientProvider client={queryClient}>

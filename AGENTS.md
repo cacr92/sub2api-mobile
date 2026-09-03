@@ -42,6 +42,20 @@
 - 生产配置、Compose 文件和 `.env` 位于 `/opt/sub2api`，其中包含敏感值；只可在已授权的服务器会话中读取，不得复制进仓库或回复。
 - Nginx 的 `http` 块需要保留 `underscores_in_headers on;`，否则 Codex CLI 使用的 `session_id` 等带下划线请求头可能被丢弃。
 
+## 同机 CCH 容器
+
+> CCH 信息最后核对时间：2026-09-03（Asia/Shanghai）。目录、监听端口、Nginx 状态和 Provider 数据均可能变化，操作前必须现场回读。
+
+- CCH（Claude Code Hub）部署目录：`/opt/claude-code-hub`；Compose 项目名：`cch`。
+- 对外管理/API 入口：`https://cch.cacr.site`；健康检查：`/api/health`（组件状态）和 `/api/v1/health`（API 状态）。
+- Nginx 配置：`/etc/nginx/sites-available/cch`，当前反向代理到宿主机回环地址上的 CCH 应用端口；端口以 `docker compose ps` 和 Nginx 配置现场值为准，不能从历史记录猜测。
+- 当前部署由 CCH 应用、PostgreSQL 和 Redis 三个容器组成；数据库和 Redis 不对公网暴露。当前镜像版本为 `0.9.5`，镜像使用仓库中的固定 digest，升级前需重新核对发布版本和备份。
+- CCH 与 Sub2API 完全隔离：CCH 的 Compose、数据库、Redis、Nginx 站点和备份只允许操作 `/opt/claude-code-hub` 对应资源；未经单独授权不得重启、重载、改写或清理 `/opt/sub2api`、`cacr.site` 或其数据库。
+- CCH 管理 API 使用 Admin Key/Bearer 或登录 Cookie；凭据只能在授权的服务器会话或本机安全存储中使用，禁止写入仓库、脚本、日志、截图和回复。对 CCH 做写操作前，先在 `/opt/claude-code-hub/backups` 创建并验证 PostgreSQL 备份。
+- Provider 协议语义：`openai-compatible` 对应 OpenAI `/v1/chat/completions`，`codex` 对应 `/v1/responses`，`claude` 对应 Anthropic Messages。一个上游 Key 同时支持两种 OpenAI 入口时，拆成 Chat 与 Responses 两条记录是必要配置，不得仅按显示名称、供应商网站或 Vendor 名称去重；协议类型必须和上游能力逐条核对。
+- CCH 的 `default` 是无分组回退语义，不等同于可删除的业务分组；删除 Provider 或分组前必须先确认数据库对象、引用关系和运行时语义。
+- 截至上述核对时间，CCH 活动 Provider 的流式首字节超时为 `15000 ms`（15 秒）；这是可变运行配置，修改前必须重新读取当前 Provider 清单并保留备份。
+
 ## 生产功能状态
 
 - `POST /api/v1/admin/accounts/upstream-costs/today` 已随私有 `v0.1.168` 部署并完成真实数据验证。

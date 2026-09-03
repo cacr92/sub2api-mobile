@@ -1,21 +1,23 @@
 import { Redirect, Tabs } from 'expo-router';
-import { ChartNoAxesCombined, KeyRound, Settings2, Store, Users } from 'lucide-react-native';
+import { ChartNoAxesCombined, KeyRound, Server, Settings2, Store, Users } from 'lucide-react-native';
 
 import { adminConfigState, hasAuthenticatedAdminSession } from '@/src/store/admin-config';
+import { serviceModeState } from '@/src/store/service-mode';
 
 const { useSnapshot } = require('valtio/react');
 
 export default function TabsLayout() {
+  const serviceMode = useSnapshot(serviceModeState);
   const config = useSnapshot(adminConfigState);
-  const hasAccount = hasAuthenticatedAdminSession(config);
+  const isCch = serviceMode.mode === 'cch';
 
-  if (!hasAccount) {
+  if (!isCch && !hasAuthenticatedAdminSession(config)) {
     return <Redirect href="/login" />;
   }
 
   return (
     <Tabs
-      initialRouteName={hasAccount ? 'monitor' : 'settings'}
+      initialRouteName="monitor"
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: '#1d5f55',
@@ -46,8 +48,8 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="accounts"
         options={{
-          title: '账号详情',
-          tabBarIcon: ({ color, size }) => <KeyRound color={color} size={size} />,
+          title: isCch ? '供应商' : '账号详情',
+          tabBarIcon: ({ color, size }) => isCch ? <Server color={color} size={size} /> : <KeyRound color={color} size={size} />,
         }}
       />
       <Tabs.Screen
@@ -60,7 +62,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="model-plaza"
         options={{
-          title: '模型广场',
+          title: isCch ? '模型定价' : '模型广场',
           tabBarIcon: ({ color, size }) => <Store color={color} size={size} />,
         }}
       />

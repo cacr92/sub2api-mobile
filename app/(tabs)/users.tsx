@@ -7,8 +7,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDebouncedValue } from '@/src/hooks/use-debounced-value';
 import { formatCompactNumber, formatTokenValue } from '@/src/lib/formatters';
 import { queryClient } from '@/src/lib/query-client';
+import { CchUsersScreen } from '@/src/screens/cch-users-screen';
 import { getUser, getUsageStats, listUserApiKeys, listUsers } from '@/src/services/admin';
 import { adminConfigState, hasAuthenticatedAdminSession } from '@/src/store/admin-config';
+import { serviceModeState } from '@/src/store/service-mode';
 import type { AdminUser, UsageStats } from '@/src/types/admin';
 
 const { useSnapshot } = require('valtio/react');
@@ -144,7 +146,7 @@ function UserCard({ user, usage }: { user: AdminUser; usage?: UsageStats }) {
   );
 }
 
-export default function UsersScreen() {
+function Sub2ApiUsersScreen() {
   const config = useSnapshot(adminConfigState);
   const hasAccount = hasAuthenticatedAdminSession(config);
   const [searchText, setSearchText] = useState('');
@@ -279,4 +281,9 @@ export default function UsersScreen() {
       </View>
     </SafeAreaView>
   );
+}
+
+export default function UsersScreen() {
+  const serviceMode = useSnapshot(serviceModeState);
+  return serviceMode.mode === 'cch' ? <CchUsersScreen /> : <Sub2ApiUsersScreen />;
 }

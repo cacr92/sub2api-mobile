@@ -4,6 +4,7 @@
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
+    "check:cch-monitor": "node --experimental-strip-types scripts/check-cch-metrics.mjs",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",

@@ -8,6 +8,8 @@ import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, Switch
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { z } from 'zod';
 
+import { ServiceModeControl } from '@/src/components/service-mode-control';
+import { CchSettingsScreen } from '@/src/screens/cch-settings-screen';
 import {
   getAdminSettings,
   getDashboardStats,
@@ -28,6 +30,7 @@ import {
   type AdminAccountProfile,
 } from '@/src/store/admin-config';
 import type { AdminSettings, StreamTimeoutAction } from '@/src/types/admin';
+import { serviceModeState } from '@/src/store/service-mode';
 
 const { useSnapshot } = require('valtio/react');
 
@@ -419,7 +422,7 @@ function ServerCard({
   );
 }
 
-export function SettingsScreen() {
+function Sub2ApiSettingsScreen() {
   const config = useSnapshot(adminConfigState);
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(config.accounts.length === 0);
@@ -758,6 +761,8 @@ export function SettingsScreen() {
             <Plus color="#ffffff" size={20} />
           </Pressable>
         </View>
+
+        <ServiceModeControl />
 
         <SettingsSection title="当前服务器" subtitle={settingsQuery.data?.site_name || currentAccount?.label || 'Sub2API'}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
@@ -1190,4 +1195,9 @@ export function SettingsScreen() {
       </ScrollView>
     </SafeAreaView>
   );
+}
+
+export function SettingsScreen() {
+  const serviceMode = useSnapshot(serviceModeState);
+  return serviceMode.mode === 'cch' ? <CchSettingsScreen /> : <Sub2ApiSettingsScreen />;
 }
