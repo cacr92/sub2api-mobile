@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getCchErrorMessage } from '@/src/lib/cch-fetch';
 import { summarizeCchProviders } from '@/src/lib/cch-metrics';
+import { formatDisplayTime, formatTokenValue } from '@/src/lib/formatters';
 import {
   getCchConcurrentSessions,
   getCchHealth,
@@ -67,6 +68,20 @@ function formatLatency(value?: number) {
   if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) return '--';
   if (value < 1_000) return `${Math.round(value)} ms`;
   return `${(value / 1_000).toFixed(1)} s`;
+}
+
+function formatPercent(value?: number | null) {
+  return typeof value === 'number' && Number.isFinite(value) ? `${(value * 100).toFixed(1)}%` : '--';
+}
+
+function formatMultiplier(value?: string | number | null) {
+  const multiplier = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(multiplier) ? `${multiplier.toFixed(2)}x` : '--';
+}
+
+function formatCoverage(covered?: number, uncovered?: number) {
+  if (covered === undefined || uncovered === undefined || covered + uncovered === 0) return '--';
+  return `${((covered / (covered + uncovered)) * 100).toFixed(1)}%`;
 }
 
 function formatCheckedAt(value?: string) {
@@ -245,9 +260,18 @@ function ProviderRows({
           <View key={provider.id} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, borderBottomColor: colors.border, borderBottomWidth: 1, paddingVertical: 12 }}>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text numberOfLines={1} style={{ fontSize: 13, fontWeight: '700', color: colors.text }}>{provider.name}</Text>
-              <Text numberOfLines={1} style={{ marginTop: 3, fontSize: 11, color: colors.subtext }}>{provider.providerType || '未知类型'} · 并发 {slotText}</Text>
+              <Text numberOfLines={1} style={{ marginTop: 3, fontSize: 11, color: colors.subtext }}>{provider.providerType || '未知类型'} · 当前倍率 {formatMultiplier(provider.costMultiplier)} · 并发 {slotText}</Text>
               <Text numberOfLines={1} style={{ marginTop: 3, fontSize: 10, color: colors.subtext }}>
-                今日 {formatNumber(toFiniteNumber(provider.statistics?.todayCalls))} 次 · {formatMoney(toFiniteNumber(provider.statistics?.todayCost))}
+                今日 {formatNumber(toFiniteNumber(provider.statistics?.todayCalls))} 次 · 计费 {formatMoney(toFiniteNumber(provider.statistics?.todayCost))} · 上游 {provider.statistics?.todayUpstreamCost === undefined ? '--' : formatMoney(toFiniteNumber(provider.statistics.todayUpstreamCost))}
+              </Text>
+              <Text numberOfLines={1} style={{ marginTop: 3, fontSize: 10, color: colors.subtext }}>
+                覆盖 {formatCoverage(provider.statistics?.coveredRequestCount, provider.statistics?.uncoveredRequestCount)} · Token {provider.statistics?.totalTokens === undefined ? '--' : formatTokenValue(provider.statistics.totalTokens)} · 缓存 {formatPercent(provider.statistics?.cacheHitRate)}
+              </Text>
+              <Text numberOfLines={1} style={{ marginTop: 3, fontSize: 10, color: colors.subtext }}>
+                请求时加权 {formatMultiplier(provider.statistics?.effectiveRateMultiplier)} · 成功 {formatPercent(provider.statistics?.successRate)} · TTFT {formatLatency(provider.statistics?.avgTtftMs)}
+              </Text>
+              <Text numberOfLines={1} style={{ marginTop: 3, fontSize: 10, color: colors.subtext }}>
+                最近调用 {formatDisplayTime(provider.statistics?.lastCallTime)}{provider.statistics?.lastCallModel ? ` · ${provider.statistics.lastCallModel}` : ''}
               </Text>
             </View>
             <View style={{ width: 74, minWidth: 0, alignItems: 'flex-end', paddingTop: 1 }}>
@@ -569,7 +593,7 @@ export function CchMonitorScreen() {
               <Text style={{ marginTop: 12, fontSize: 11, color: colors.subtext }}>数据库 {formatLatency(systemComponents?.database?.latencyMs)} · Redis {formatLatency(systemComponents?.redis?.latencyMs)} · 代理 {formatLatency(systemComponents?.proxy?.latencyMs)}</Text>
             </Section>
 
-            <Section title="供应商状态" subtitle="启用状态、今日调用费用与熔断器">
+            <Section title="供应商状态" subtitle="倍率、计费、上游估算、Token、性能与熔断器">
               {providersQuery.isLoading ? (
                 <View style={{ alignItems: 'center', paddingVertical: 12 }}><ActivityIndicator color={colors.primary} /></View>
               ) : providersQuery.error ? (
@@ -579,11 +603,19 @@ export function CchMonitorScreen() {
                   <MetricGrid items={[
                     { label: '供应商', value: formatNumber(providerSummary.total), tone: 'primary' },
                     { label: '已启用', value: formatNumber(providerSummary.enabled), tone: 'primary' },
-                    { label: '已停用', value: formatNumber(providerSummary.disabled) },
+                    { label: '今日调用', value: formatNumber(providerSummary.todayCalls), tone: 'primary' },
+                    { label: '今日计费', value: formatMoney(providerSummary.todayCost), tone: 'primary' },
+                    { label: '上游估算', value: providerSummary.hasEnhancedStatistics ? formatMoney(providerSummary.todayUpstreamCost) : '--', tone: 'primary' },
+                    { label: '费用覆盖', value: providerSummary.hasEnhancedStatistics ? formatCoverage(providerSummary.coveredRequestCount, providerSummary.uncoveredRequestCount) : '--', tone: providerSummary.uncoveredRequestCount > 0 ? 'warning' : undefined },
+                    { label: '总 Token', value: providerSummary.hasEnhancedStatistics ? formatTokenValue(providerSummary.totalTokens) : '--' },
+                    { label: '缓存命中', value: providerSummary.hasEnhancedStatistics ? formatPercent(providerSummary.cacheHitRate) : '--' },
+                    { label: '请求时加权', value: providerSummary.hasEnhancedStatistics ? formatMultiplier(providerSummary.effectiveRateMultiplier) : '--' },
                     { label: '熔断中', value: providerHealthQuery.data ? formatNumber(providerSummary.circuitOpen) : '--', tone: providerHealthQuery.data && providerSummary.circuitOpen > 0 ? 'danger' : undefined },
                     { label: '恢复检测', value: providerHealthQuery.data ? formatNumber(providerSummary.circuitHalfOpen) : '--', tone: providerHealthQuery.data && providerSummary.circuitHalfOpen > 0 ? 'warning' : undefined },
-                    { label: '今日调用', value: formatNumber(providerSummary.todayCalls), tone: 'primary' },
+                    { label: '已停用', value: formatNumber(providerSummary.disabled) },
                   ]} />
+                  {providerSummary.hasEnhancedStatistics ? <Text style={{ marginTop: 12, fontSize: 11, lineHeight: 17, color: colors.subtext }}>Token：输入 {formatTokenValue(providerSummary.inputTokens)} · 输出 {formatTokenValue(providerSummary.outputTokens)} · 缓存写 {formatTokenValue(providerSummary.cacheCreationTokens)} · 缓存读 {formatTokenValue(providerSummary.cacheReadTokens)}</Text> : null}
+                  {providerSummary.hasEnhancedStatistics && providerSummary.uncoveredRequestCount > 0 ? <Text style={{ marginTop: 6, fontSize: 11, lineHeight: 17, color: colors.warning }}>有 {formatNumber(providerSummary.uncoveredRequestCount)} 个请求缺少有效的请求时 Group 倍率；上游估算只包含已覆盖部分。</Text> : null}
                   {providerHealthQuery.error ? <Text style={{ marginTop: 12, fontSize: 11, lineHeight: 17, color: colors.warning }}>熔断状态暂不可用：{getCchErrorMessage(providerHealthQuery.error)}</Text> : null}
                   <ProviderRows providers={providers} healthByProviderId={providerHealth} slotsByProviderId={slotsByProviderId} />
                 </>

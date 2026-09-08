@@ -15,6 +15,8 @@ import type {
 } from '@/src/types/cch';
 
 const nonNegativeNumber = z.number().finite().min(0);
+const nonNegativeNumeric = z.union([z.string(), nonNegativeNumber]);
+const upstreamCostStatusSchema = z.enum(['estimated', 'partial', 'unavailable']);
 
 const cchHealthComponentSchema = z.object({
   status: z.string().min(1),
@@ -50,9 +52,38 @@ const cchProviderSchema = z.object({
   name: z.string(),
   isEnabled: z.boolean(),
   providerType: z.string().optional(),
+  costMultiplier: nonNegativeNumber.optional(),
+  limit5hUsd: nonNegativeNumber.nullable().optional(),
+  limitDailyUsd: nonNegativeNumber.nullable().optional(),
+  limitWeeklyUsd: nonNegativeNumber.nullable().optional(),
+  limitMonthlyUsd: nonNegativeNumber.nullable().optional(),
+  limitTotalUsd: nonNegativeNumber.nullable().optional(),
+  limitConcurrentSessions: z.number().int().min(0).optional(),
   statistics: z.object({
-    todayCost: z.union([z.string(), nonNegativeNumber]),
+    todayCost: nonNegativeNumeric,
     todayCalls: z.number().int().min(0),
+    todayUpstreamCost: nonNegativeNumeric.optional(),
+    upstreamCostStatus: upstreamCostStatusSchema.optional(),
+    coveredRequestCount: z.number().int().min(0).optional(),
+    uncoveredRequestCount: z.number().int().min(0).optional(),
+    effectiveRateMultiplier: z.union([z.string(), nonNegativeNumber]).nullable().optional(),
+    totalTokens: nonNegativeNumber.optional(),
+    inputTokens: nonNegativeNumber.optional(),
+    outputTokens: nonNegativeNumber.optional(),
+    cacheCreationTokens: nonNegativeNumber.optional(),
+    cacheReadTokens: nonNegativeNumber.optional(),
+    cacheHitRate: z.number().finite().min(0).max(1).optional(),
+    avgTtftMs: nonNegativeNumber.optional(),
+    successRate: z.number().finite().min(0).max(1).nullable().optional(),
+    models: z.array(z.object({
+      model: z.string(),
+      todayCalls: z.number().int().min(0),
+      totalTokens: nonNegativeNumber,
+      todayUpstreamCost: nonNegativeNumeric,
+      upstreamCostStatus: upstreamCostStatusSchema,
+      coveredRequestCount: z.number().int().min(0),
+      uncoveredRequestCount: z.number().int().min(0),
+    }).passthrough()).optional(),
     lastCallTime: z.string().nullable().optional(),
     lastCallModel: z.string().nullable().optional(),
   }).passthrough().optional(),

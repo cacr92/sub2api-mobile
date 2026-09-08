@@ -31,8 +31,32 @@ export type CchOverview = {
 export type CchProviderStatistics = {
   todayCost: string | number;
   todayCalls: number;
+  todayUpstreamCost?: string | number;
+  upstreamCostStatus?: 'estimated' | 'partial' | 'unavailable';
+  coveredRequestCount?: number;
+  uncoveredRequestCount?: number;
+  effectiveRateMultiplier?: string | number | null;
+  totalTokens?: number;
+  inputTokens?: number;
+  outputTokens?: number;
+  cacheCreationTokens?: number;
+  cacheReadTokens?: number;
+  cacheHitRate?: number;
+  avgTtftMs?: number;
+  successRate?: number | null;
+  models?: CchProviderModelStatistics[];
   lastCallTime?: string | null;
   lastCallModel?: string | null;
+};
+
+export type CchProviderModelStatistics = {
+  model: string;
+  todayCalls: number;
+  totalTokens: number;
+  todayUpstreamCost: string | number;
+  upstreamCostStatus: 'estimated' | 'partial' | 'unavailable';
+  coveredRequestCount: number;
+  uncoveredRequestCount: number;
 };
 
 export type CchProvider = {
@@ -40,6 +64,13 @@ export type CchProvider = {
   name: string;
   isEnabled: boolean;
   providerType?: string;
+  costMultiplier?: number;
+  limit5hUsd?: number | null;
+  limitDailyUsd?: number | null;
+  limitWeeklyUsd?: number | null;
+  limitMonthlyUsd?: number | null;
+  limitTotalUsd?: number | null;
+  limitConcurrentSessions?: number;
   statistics?: CchProviderStatistics;
 };
 
