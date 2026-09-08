@@ -3,7 +3,7 @@
     "name": "sub2api-mobile",
     "slug": "sub2api-mobile",
     "owner": "ckken",
-    "version": "1.0.26",
+    "version": "1.0.27",
     "orientation": "portrait",
     "icon": "./icons/ios/AppIcon.appiconset/icon-1024.png",
     "userInterfaceStyle": "light",
@@ -23,7 +23,7 @@
     "android": {
       "icon": "./icons/android/playstore-icon.png",
       "package": "com.ppx.sub2apimobile",
-      "versionCode": 27,
+      "versionCode": 28,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./icons/android/playstore-icon.png"
