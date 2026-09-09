@@ -14,17 +14,15 @@ import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getCchErrorMessage } from '@/src/lib/cch-fetch';
-import { summarizeCchProviders } from '@/src/lib/cch-metrics';
-import { formatDisplayTime, formatTokenValue } from '@/src/lib/formatters';
+import { compareCchProvidersByLiveActivity, getCchProviderSlotSnapshot, summarizeCchProviders } from '@/src/lib/cch-metrics';
 import {
   getCchConcurrentSessions,
   getCchHealth,
   getCchOverview,
   getCchProviderHealth,
   getCchProviderSlots,
-  getCchProxyStatus,
   getCchRealtime,
-  getCchUsers,
+  getCchSystemSettings,
   listCchProviders,
 } from '@/src/services/cch';
 import { cchConfigState, hasCchAdminSession } from '@/src/store/cch-config';
@@ -74,14 +72,8 @@ function formatPercent(value?: number | null) {
   return typeof value === 'number' && Number.isFinite(value) ? `${(value * 100).toFixed(1)}%` : '--';
 }
 
-function formatMultiplier(value?: string | number | null) {
-  const multiplier = typeof value === 'number' ? value : Number(value);
-  return Number.isFinite(multiplier) ? `${multiplier.toFixed(2)}x` : '--';
-}
-
-function formatCoverage(covered?: number, uncovered?: number) {
-  if (covered === undefined || uncovered === undefined || covered + uncovered === 0) return '--';
-  return `${((covered / (covered + uncovered)) * 100).toFixed(1)}%`;
+function formatMultiplier(value?: number | null) {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? `${value.toFixed(2)}x` : '--';
 }
 
 function formatCheckedAt(value?: string) {
@@ -94,31 +86,6 @@ function formatCheckedAt(value?: string) {
   if (seconds < 60) return `${seconds} 秒前`;
   if (seconds < 3_600) return `${Math.floor(seconds / 60)} 分钟前`;
   return new Date(timestamp).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-}
-
-function formatLimitedCount(value: number | undefined, hasMore?: boolean) {
-  if (value === undefined) return '--';
-  return `${formatNumber(value)}${hasMore ? '+' : ''}`;
-}
-
-function getCircuitLabel(circuit?: CchProviderCircuit) {
-  switch (circuit?.circuitState) {
-    case 'open':
-      return '熔断中';
-    case 'half-open':
-      return '恢复检测';
-    case 'closed':
-      return '正常';
-    default:
-      return '未返回';
-  }
-}
-
-function getCircuitTone(circuit?: CchProviderCircuit): MetricTone | undefined {
-  if (circuit?.circuitState === 'open') return 'danger';
-  if (circuit?.circuitState === 'half-open') return 'warning';
-  if (circuit?.circuitState === 'closed') return 'primary';
-  return undefined;
 }
 
 function Section({ title, subtitle, children, right }: { title: string; subtitle?: string; children: React.ReactNode; right?: React.ReactNode }) {
@@ -237,11 +204,7 @@ function ProviderRows({
   slotsByProviderId: Map<number, CchProviderSlot>;
 }) {
   const rows = [...providers]
-    .sort((left, right) => {
-      const calls = toFiniteNumber(right.statistics?.todayCalls) - toFiniteNumber(left.statistics?.todayCalls);
-      if (calls !== 0) return calls;
-      return toFiniteNumber(right.statistics?.todayCost) - toFiniteNumber(left.statistics?.todayCost);
-    })
+    .sort((left, right) => compareCchProvidersByLiveActivity(left, right, slotsByProviderId))
     .slice(0, 5);
 
   if (rows.length === 0) {
@@ -253,69 +216,57 @@ function ProviderRows({
       {rows.map((provider) => {
         const circuit = healthByProviderId[`${provider.id}`];
         const slot = slotsByProviderId.get(provider.id);
-        const tone = getCircuitTone(circuit) ?? (provider.isEnabled ? 'primary' : undefined);
-        const slotText = slot ? `${formatNumber(slot.usedSlots)} / ${formatNumber(slot.totalSlots)}` : '--';
+        const slotSnapshot = getCchProviderSlotSnapshot(slot);
+        const slotText = !slot
+          ? '--'
+          : slotSnapshot.totalSlots > 0
+            ? `${formatNumber(slotSnapshot.usedSlots)} / ${formatNumber(slotSnapshot.totalSlots)}`
+            : slotSnapshot.isActive
+              ? `${formatNumber(slotSnapshot.usedSlots)} / 无上限`
+              : '未追踪';
+        const stateLabel = circuit?.circuitState === 'open'
+          ? '熔断中'
+          : circuit?.circuitState === 'half-open'
+            ? '恢复检测'
+            : !provider.isEnabled
+              ? '已停用'
+              : slotSnapshot.isActive
+                ? '正在调用'
+                : '空闲';
+        const stateColor = circuit?.circuitState === 'open'
+          ? colors.danger
+          : circuit?.circuitState === 'half-open' || !provider.isEnabled
+            ? colors.warning
+            : slotSnapshot.isActive
+              ? colors.primary
+              : colors.subtext;
+        const todayCalls = provider.statistics
+          ? formatNumber(toFiniteNumber(provider.statistics.todayCalls))
+          : '--';
+        const metrics = [
+          { label: '费用', value: provider.statistics ? formatMoney(toFiniteNumber(provider.statistics.todayCost)) : '--', tone: colors.primary },
+          { label: '缓存', value: formatPercent(provider.statistics?.cacheHitRate), tone: colors.text },
+          { label: '首字', value: formatLatency(provider.statistics?.avgTtftMs), tone: colors.text },
+        ];
 
         return (
-          <View key={provider.id} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, borderBottomColor: colors.border, borderBottomWidth: 1, paddingVertical: 12 }}>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text numberOfLines={1} style={{ fontSize: 13, fontWeight: '700', color: colors.text }}>{provider.name}</Text>
-              <Text numberOfLines={1} style={{ marginTop: 3, fontSize: 11, color: colors.subtext }}>{provider.providerType || '未知类型'} · 当前倍率 {formatMultiplier(provider.costMultiplier)} · 并发 {slotText}</Text>
-              <Text numberOfLines={1} style={{ marginTop: 3, fontSize: 10, color: colors.subtext }}>
-                今日 {formatNumber(toFiniteNumber(provider.statistics?.todayCalls))} 次 · 计费 {formatMoney(toFiniteNumber(provider.statistics?.todayCost))} · 上游 {provider.statistics?.todayUpstreamCost === undefined ? '--' : formatMoney(toFiniteNumber(provider.statistics.todayUpstreamCost))}
-              </Text>
-              <Text numberOfLines={1} style={{ marginTop: 3, fontSize: 10, color: colors.subtext }}>
-                覆盖 {formatCoverage(provider.statistics?.coveredRequestCount, provider.statistics?.uncoveredRequestCount)} · Token {provider.statistics?.totalTokens === undefined ? '--' : formatTokenValue(provider.statistics.totalTokens)} · 缓存 {formatPercent(provider.statistics?.cacheHitRate)}
-              </Text>
-              <Text numberOfLines={1} style={{ marginTop: 3, fontSize: 10, color: colors.subtext }}>
-                请求时加权 {formatMultiplier(provider.statistics?.effectiveRateMultiplier)} · 成功 {formatPercent(provider.statistics?.successRate)} · TTFT {formatLatency(provider.statistics?.avgTtftMs)}
-              </Text>
-              <Text numberOfLines={1} style={{ marginTop: 3, fontSize: 10, color: colors.subtext }}>
-                最近调用 {formatDisplayTime(provider.statistics?.lastCallTime)}{provider.statistics?.lastCallModel ? ` · ${provider.statistics.lastCallModel}` : ''}
-              </Text>
-            </View>
-            <View style={{ width: 74, minWidth: 0, alignItems: 'flex-end', paddingTop: 1 }}>
-              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ width: '100%', textAlign: 'right', fontSize: 12, fontWeight: '700', color: tone === 'danger' ? colors.danger : tone === 'warning' ? colors.warning : tone === 'primary' ? colors.primary : colors.subtext }}>
-                {getCircuitLabel(circuit)}
-              </Text>
-              <Text style={{ marginTop: 3, fontSize: 10, color: provider.isEnabled ? colors.subtext : colors.warning }}>{provider.isEnabled ? '已启用' : '已停用'}</Text>
-            </View>
-          </View>
-        );
-      })}
-    </View>
-  );
-}
-
-function SlotRows({ slots }: { slots: CchProviderSlot[] }) {
-  const rows = [...slots]
-    .filter((slot) => slot.totalSlots > 0 || slot.usedSlots > 0)
-    .sort((left, right) => {
-      const leftUsage = left.totalSlots > 0 ? left.usedSlots / left.totalSlots : 1;
-      const rightUsage = right.totalSlots > 0 ? right.usedSlots / right.totalSlots : 1;
-      return rightUsage - leftUsage || right.usedSlots - left.usedSlots;
-    })
-    .slice(0, 5);
-
-  if (rows.length === 0) {
-    return <Text style={{ paddingVertical: 4, fontSize: 12, color: colors.subtext }}>当前没有供应商并发插槽配置。</Text>;
-  }
-
-  return (
-    <View style={{ borderTopColor: colors.border, borderTopWidth: 1 }}>
-      {rows.map((slot) => {
-        const ratio = slot.totalSlots > 0 ? slot.usedSlots / slot.totalSlots : 0;
-        const tone = ratio >= 0.9 ? colors.danger : ratio >= 0.7 ? colors.warning : colors.primary;
-
-        return (
-          <View key={slot.providerId} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, borderBottomColor: colors.border, borderBottomWidth: 1, paddingVertical: 11 }}>
-            <View style={{ flex: 1, minWidth: 0 }}>
-              <Text numberOfLines={1} style={{ fontSize: 13, fontWeight: '700', color: colors.text }}>{slot.name}</Text>
-              <View style={{ height: 5, overflow: 'hidden', borderRadius: 3, marginTop: 7, backgroundColor: colors.mutedCard }}>
-                <View style={{ width: `${Math.min(100, Math.max(0, ratio * 100))}%`, height: '100%', backgroundColor: tone }} />
+          <View key={provider.id} style={{ borderBottomColor: colors.border, borderBottomWidth: 1, paddingVertical: 13 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 9 }}>
+              <View style={{ width: 7, height: 7, marginTop: 6, borderRadius: 4, backgroundColor: stateColor }} />
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text numberOfLines={1} style={{ fontSize: 13, fontWeight: '700', color: colors.text }}>{provider.name} <Text style={{ fontSize: 10, fontWeight: '600', color: stateColor }}>· 并发 {slotText}</Text></Text>
+                <Text numberOfLines={1} style={{ marginTop: 3, fontSize: 10, color: colors.subtext }}>{provider.providerType || '未知类型'} · 今日 {todayCalls} 次</Text>
               </View>
+              <Text numberOfLines={1} style={{ flexShrink: 0, fontSize: 11, fontWeight: '700', color: stateColor }}>{stateLabel}</Text>
             </View>
-            <Text style={{ width: 65, textAlign: 'right', fontSize: 13, fontWeight: '700', color: tone }}>{formatNumber(slot.usedSlots)} / {formatNumber(slot.totalSlots)}</Text>
+            <View style={{ flexDirection: 'row', marginTop: 11, borderTopColor: colors.border, borderTopWidth: 1, borderBottomColor: colors.border, borderBottomWidth: 1 }}>
+              {metrics.map((metric, index) => (
+                <View key={metric.label} style={{ flex: 1, minWidth: 0, paddingVertical: 9, paddingHorizontal: index === 0 ? 0 : 9, borderLeftColor: colors.border, borderLeftWidth: index === 0 ? 0 : 1 }}>
+                  <Text style={{ fontSize: 10, color: colors.subtext }}>{metric.label}</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.68} style={{ marginTop: 4, fontSize: 16, fontWeight: '700', color: metric.tone }}>{metric.value}</Text>
+                </View>
+              ))}
+            </View>
           </View>
         );
       })}
@@ -399,23 +350,15 @@ export function CchMonitorScreen() {
     queryKey: ['cch', 'provider-slots', queryScope],
     queryFn: getCchProviderSlots,
     enabled: hasCchSession,
-    staleTime: 10_000,
-    refetchInterval: 10_000,
+    staleTime: 5_000,
+    refetchInterval: 5_000,
     retry: false,
   });
-  const usersQuery = useQuery({
-    queryKey: ['cch', 'users', queryScope],
-    queryFn: () => getCchUsers(),
+  const systemSettingsQuery = useQuery({
+    queryKey: ['cch', 'system-settings', queryScope],
+    queryFn: getCchSystemSettings,
     enabled: hasCchSession,
     staleTime: 60_000,
-    retry: false,
-  });
-  const proxyStatusQuery = useQuery({
-    queryKey: ['cch', 'proxy-status', queryScope],
-    queryFn: getCchProxyStatus,
-    enabled: hasCchSession,
-    staleTime: 10_000,
-    refetchInterval: 10_000,
     retry: false,
   });
   const realtimeQuery = useQuery({
@@ -438,27 +381,6 @@ export function CchMonitorScreen() {
     () => new Map<number, CchProviderSlot>(providerSlots.map((slot) => [slot.providerId, slot])),
     [providerSlots]
   );
-  const userSummary = useMemo(() => {
-    const users = usersQuery.data?.items ?? [];
-    let keyCount = 0;
-    let enabledKeyCount = 0;
-    let enabledUserCount = 0;
-
-    for (const user of users) {
-      if (user.isEnabled !== false) enabledUserCount += 1;
-      for (const key of user.keys ?? []) {
-        keyCount += 1;
-        if (key.isEnabled !== false) enabledKeyCount += 1;
-      }
-    }
-
-    return { userCount: users.length, enabledUserCount, keyCount, enabledKeyCount };
-  }, [usersQuery.data?.items]);
-  const activeProxyRequests = useMemo(
-    () => (proxyStatusQuery.data?.users ?? []).reduce((total, user) => total + user.activeCount, 0),
-    [proxyStatusQuery.data?.users]
-  );
-  const hasMoreUsers = usersQuery.data?.pageInfo.hasMore === true;
   const activeActivities = realtimeQuery.data?.activityStream ?? [];
   const openedCircuits = useMemo(
     () => providers.filter((provider) => providerHealth[`${provider.id}`]?.circuitState === 'open'),
@@ -471,8 +393,7 @@ export function CchMonitorScreen() {
     || providersQuery.isRefetching
     || providerHealthQuery.isRefetching
     || providerSlotsQuery.isRefetching
-    || usersQuery.isRefetching
-    || proxyStatusQuery.isRefetching
+    || systemSettingsQuery.isRefetching
     || realtimeQuery.isRefetching;
 
   async function refetchAll() {
@@ -485,8 +406,7 @@ export function CchMonitorScreen() {
         providersQuery.refetch(),
         providerHealthQuery.refetch(),
         providerSlotsQuery.refetch(),
-        usersQuery.refetch(),
-        proxyStatusQuery.refetch(),
+        systemSettingsQuery.refetch(),
         realtimeQuery.refetch()
       );
     }
@@ -496,8 +416,6 @@ export function CchMonitorScreen() {
 
   const overview = overviewQuery.data;
   const currentConcurrency = concurrentSessionsQuery.data ?? overview?.concurrentSessions;
-  const systemComponents = healthQuery.data?.components;
-
   return (
     <SafeAreaView edges={['bottom']} style={{ flex: 1, backgroundColor: colors.page }}>
       <ScrollView
@@ -542,7 +460,7 @@ export function CchMonitorScreen() {
 
         {!hasCchSession ? (
           <Section title="等待 CCH Admin Key" subtitle="服务健康可公开检测，运营监控需要 CCH Admin Key">
-            <Text style={{ fontSize: 13, lineHeight: 20, color: colors.subtext }}>填写并验证 CCH Admin Key 后，将读取流量、供应商、熔断器、插槽、用户与代理状态。</Text>
+            <Text style={{ fontSize: 13, lineHeight: 20, color: colors.subtext }}>填写并验证 CCH Admin Key 后，将读取流量、供应商、熔断器、插槽和近期调用。</Text>
             <Pressable
               accessibilityLabel="打开 CCH 设置"
               accessibilityRole="button"
@@ -554,7 +472,7 @@ export function CchMonitorScreen() {
           </Section>
         ) : (
           <View style={{ gap: 12 }}>
-            <Section title="今日运行" subtitle="CCH 管理范围内的当前汇总">
+            <Section title="今日总览" subtitle="全局费用、缓存命中、总倍率和当前运行状态">
               {overviewQuery.isLoading ? (
                 <View style={{ alignItems: 'center', paddingVertical: 14 }}><ActivityIndicator color={colors.primary} /></View>
               ) : overviewQuery.error ? (
@@ -572,84 +490,52 @@ export function CchMonitorScreen() {
               ) : overview ? (
                 <>
                   <MetricGrid items={[
+                    { label: '今日总费用', value: formatMoney(overview.todayCost), tone: 'primary' },
+                    { label: '总缓存命中', value: providerSummary.hasCacheStatistics ? formatPercent(providerSummary.cacheHitRate) : '--', tone: providerSummary.hasCacheStatistics ? 'primary' : undefined },
                     { label: '今日请求', value: formatNumber(overview.todayRequests), tone: 'primary' },
-                    { label: '今日费用', value: formatMoney(overview.todayCost), tone: 'primary' },
-                    { label: '错误率', value: `${overview.todayErrorRate.toFixed(1)}%`, tone: overview.todayErrorRate > 5 ? 'danger' : overview.todayErrorRate > 1 ? 'warning' : undefined },
                     { label: '平均响应', value: formatLatency(overview.avgResponseTime) },
-                    { label: '最近 1 分钟', value: formatNumber(overview.recentMinuteRequests), tone: 'primary' },
+                    { label: '今日总倍率', value: providerSummary.hasEnhancedStatistics ? formatMultiplier(providerSummary.effectiveRateMultiplier) : '--', tone: providerSummary.hasEnhancedStatistics && providerSummary.effectiveRateMultiplier !== null ? 'primary' : undefined },
                     { label: '当前并发', value: formatNumber(currentConcurrency), tone: 'primary' },
                   ]} />
-                  <Text style={{ marginTop: 12, fontSize: 11, color: colors.subtext }}>昨日同期请求 {formatNumber(overview.yesterdaySamePeriodRequests)} · 费用 {formatMoney(overview.yesterdaySamePeriodCost)} · 响应 {formatLatency(overview.yesterdaySamePeriodAvgResponseTime)}</Text>
+                  <Text style={{ marginTop: 12, fontSize: 11, lineHeight: 17, color: colors.subtext }}>最近 1 分钟 {formatNumber(overview.recentMinuteRequests)} 次 · 昨日同期 {formatNumber(overview.yesterdaySamePeriodRequests)} 次 · 费用 {formatMoney(overview.yesterdaySamePeriodCost)} · 响应 {formatLatency(overview.yesterdaySamePeriodAvgResponseTime)}</Text>
                 </>
               ) : <Text style={{ fontSize: 12, color: colors.subtext }}>当前没有可用的运行汇总。</Text>}
             </Section>
 
-            <Section title="服务组件" subtitle="CCH 健康检查返回的基础依赖状态">
-              <MetricGrid items={[
-                { label: '数据库', value: systemComponents?.database?.status === 'up' ? '正常' : systemComponents?.database?.status || '--', tone: systemComponents?.database?.status === 'up' ? 'primary' : systemComponents?.database ? 'danger' : undefined },
-                { label: 'Redis', value: systemComponents?.redis?.status === 'up' ? '正常' : systemComponents?.redis?.status || '--', tone: systemComponents?.redis?.status === 'up' ? 'primary' : systemComponents?.redis ? 'danger' : undefined },
-                { label: '代理', value: systemComponents?.proxy?.status === 'up' ? '正常' : systemComponents?.proxy?.status || '--', tone: systemComponents?.proxy?.status === 'up' ? 'primary' : systemComponents?.proxy ? 'danger' : undefined },
-              ]} />
-              <Text style={{ marginTop: 12, fontSize: 11, color: colors.subtext }}>数据库 {formatLatency(systemComponents?.database?.latencyMs)} · Redis {formatLatency(systemComponents?.redis?.latencyMs)} · 代理 {formatLatency(systemComponents?.proxy?.latencyMs)}</Text>
+            <Section title="上游倍率探测" subtitle="倍率每 1 小时自动探测，排序每 2 小时按有效探测倍率执行">
+              {providersQuery.isLoading ? (
+                <View style={{ alignItems: 'center', paddingVertical: 12 }}><ActivityIndicator color={colors.primary} /></View>
+              ) : providersQuery.error ? (
+                <Text style={{ paddingVertical: 4, fontSize: 12, lineHeight: 18, color: colors.warning }}>探测状态暂不可用：{getCchErrorMessage(providersQuery.error)}</Text>
+              ) : (
+                <>
+                  <MetricGrid items={[
+                    { label: '自动探测', value: `${formatNumber(providerSummary.probeEnabled)} 开启`, tone: providerSummary.probeEnabled > 0 ? 'primary' : undefined },
+                    { label: '探测成功', value: formatNumber(providerSummary.probeOk), tone: providerSummary.probeOk > 0 ? 'primary' : undefined },
+                    { label: '探测失败', value: formatNumber(providerSummary.probeFailed), tone: providerSummary.probeFailed > 0 ? 'danger' : undefined },
+                    { label: '上游不支持', value: formatNumber(providerSummary.probeUnsupported), tone: providerSummary.probeUnsupported > 0 ? 'warning' : undefined },
+                    { label: '有效探测倍率', value: formatNumber(providerSummary.probeEffectiveMultiplier), tone: providerSummary.probeEffectiveMultiplier > 0 ? 'primary' : undefined },
+                    { label: '失败沿用历史', value: formatNumber(providerSummary.probeFailedUsingHistoricalMultiplier), tone: providerSummary.probeFailedUsingHistoricalMultiplier > 0 ? 'warning' : undefined },
+                  ]} />
+                  <Text style={{ marginTop: 12, fontSize: 11, lineHeight: 17, color: systemSettingsQuery.data?.autoSortProviderPriorityEnabled ? colors.primary : colors.subtext }}>
+                    自动排序：{systemSettingsQuery.data?.autoSortProviderPriorityEnabled ? '已开启，使用探测倍率并在缺失时回退到手动倍率。' : '已关闭，供应商优先级保持手动排序。'}
+                  </Text>
+                  {systemSettingsQuery.error ? <Text style={{ marginTop: 6, fontSize: 11, lineHeight: 17, color: colors.warning }}>自动排序状态暂不可用：{getCchErrorMessage(systemSettingsQuery.error)}</Text> : null}
+                </>
+              )}
             </Section>
 
-            <Section title="供应商状态" subtitle="倍率、计费、上游估算、Token、性能与熔断器">
+            <Section title="供应商明细" subtitle="正在调用优先，名称后显示实时并发；每 5 秒更新">
               {providersQuery.isLoading ? (
                 <View style={{ alignItems: 'center', paddingVertical: 12 }}><ActivityIndicator color={colors.primary} /></View>
               ) : providersQuery.error ? (
                 <Text style={{ paddingVertical: 4, fontSize: 12, lineHeight: 18, color: colors.warning }}>供应商数据暂不可用：{getCchErrorMessage(providersQuery.error)}</Text>
               ) : (
                 <>
-                  <MetricGrid items={[
-                    { label: '供应商', value: formatNumber(providerSummary.total), tone: 'primary' },
-                    { label: '已启用', value: formatNumber(providerSummary.enabled), tone: 'primary' },
-                    { label: '今日调用', value: formatNumber(providerSummary.todayCalls), tone: 'primary' },
-                    { label: '今日计费', value: formatMoney(providerSummary.todayCost), tone: 'primary' },
-                    { label: '上游估算', value: providerSummary.hasEnhancedStatistics ? formatMoney(providerSummary.todayUpstreamCost) : '--', tone: 'primary' },
-                    { label: '费用覆盖', value: providerSummary.hasEnhancedStatistics ? formatCoverage(providerSummary.coveredRequestCount, providerSummary.uncoveredRequestCount) : '--', tone: providerSummary.uncoveredRequestCount > 0 ? 'warning' : undefined },
-                    { label: '总 Token', value: providerSummary.hasEnhancedStatistics ? formatTokenValue(providerSummary.totalTokens) : '--' },
-                    { label: '缓存命中', value: providerSummary.hasEnhancedStatistics ? formatPercent(providerSummary.cacheHitRate) : '--' },
-                    { label: '请求时加权', value: providerSummary.hasEnhancedStatistics ? formatMultiplier(providerSummary.effectiveRateMultiplier) : '--' },
-                    { label: '熔断中', value: providerHealthQuery.data ? formatNumber(providerSummary.circuitOpen) : '--', tone: providerHealthQuery.data && providerSummary.circuitOpen > 0 ? 'danger' : undefined },
-                    { label: '恢复检测', value: providerHealthQuery.data ? formatNumber(providerSummary.circuitHalfOpen) : '--', tone: providerHealthQuery.data && providerSummary.circuitHalfOpen > 0 ? 'warning' : undefined },
-                    { label: '已停用', value: formatNumber(providerSummary.disabled) },
-                  ]} />
-                  {providerSummary.hasEnhancedStatistics ? <Text style={{ marginTop: 12, fontSize: 11, lineHeight: 17, color: colors.subtext }}>Token：输入 {formatTokenValue(providerSummary.inputTokens)} · 输出 {formatTokenValue(providerSummary.outputTokens)} · 缓存写 {formatTokenValue(providerSummary.cacheCreationTokens)} · 缓存读 {formatTokenValue(providerSummary.cacheReadTokens)}</Text> : null}
-                  {providerSummary.hasEnhancedStatistics && providerSummary.uncoveredRequestCount > 0 ? <Text style={{ marginTop: 6, fontSize: 11, lineHeight: 17, color: colors.warning }}>有 {formatNumber(providerSummary.uncoveredRequestCount)} 个请求缺少有效的请求时 Group 倍率；上游估算只包含已覆盖部分。</Text> : null}
                   {providerHealthQuery.error ? <Text style={{ marginTop: 12, fontSize: 11, lineHeight: 17, color: colors.warning }}>熔断状态暂不可用：{getCchErrorMessage(providerHealthQuery.error)}</Text> : null}
                   <ProviderRows providers={providers} healthByProviderId={providerHealth} slotsByProviderId={slotsByProviderId} />
                 </>
               )}
-            </Section>
-
-            <Section title="供应商并发" subtitle="供应商插槽的当前占用">
-              {providerSlotsQuery.isLoading ? (
-                <View style={{ alignItems: 'center', paddingVertical: 12 }}><ActivityIndicator color={colors.primary} /></View>
-              ) : providerSlotsQuery.error ? (
-                <Text style={{ paddingVertical: 4, fontSize: 12, lineHeight: 18, color: colors.warning }}>插槽数据暂不可用：{getCchErrorMessage(providerSlotsQuery.error)}</Text>
-              ) : (
-                <>
-                  <MetricGrid items={[
-                    { label: '已用插槽', value: formatNumber(providerSummary.slotUsed), tone: providerSummary.slotUsed > 0 ? 'primary' : undefined },
-                    { label: '插槽容量', value: formatNumber(providerSummary.slotCapacity) },
-                    { label: '承载供应商', value: formatNumber(providerSummary.activeSlotProviders), tone: providerSummary.activeSlotProviders > 0 ? 'primary' : undefined },
-                  ]} />
-                  <SlotRows slots={providerSlots} />
-                </>
-              )}
-            </Section>
-
-            <Section title="用户与 API Key" subtitle="CCH 列表接口每次最多返回 100 个用户">
-              <MetricGrid items={[
-                { label: '已加载用户', value: formatLimitedCount(usersQuery.data ? userSummary.userCount : undefined, hasMoreUsers), tone: 'primary' },
-                { label: '启用用户', value: formatLimitedCount(usersQuery.data ? userSummary.enabledUserCount : undefined, hasMoreUsers), tone: 'primary' },
-                { label: '已加载 Key', value: formatLimitedCount(usersQuery.data ? userSummary.keyCount : undefined, hasMoreUsers), tone: 'primary' },
-                { label: '启用 Key', value: formatLimitedCount(usersQuery.data ? userSummary.enabledKeyCount : undefined, hasMoreUsers), tone: 'primary' },
-                { label: '代理活动用户', value: proxyStatusQuery.data ? formatNumber(proxyStatusQuery.data.users.filter((user) => user.activeCount > 0).length) : '--' },
-                { label: '活跃代理请求', value: proxyStatusQuery.data ? formatNumber(activeProxyRequests) : '--', tone: activeProxyRequests > 0 ? 'primary' : undefined },
-              ]} />
-              {usersQuery.error ? <Text style={{ marginTop: 12, fontSize: 11, lineHeight: 17, color: colors.warning }}>用户统计暂不可用：{getCchErrorMessage(usersQuery.error)}</Text> : null}
-              {proxyStatusQuery.error ? <Text style={{ marginTop: usersQuery.error ? 7 : 12, fontSize: 11, lineHeight: 17, color: colors.warning }}>代理状态暂不可用：{getCchErrorMessage(proxyStatusQuery.error)}</Text> : null}
             </Section>
 
             <Section title="近期调用" subtitle="CCH 实时活动流中的最近记录">

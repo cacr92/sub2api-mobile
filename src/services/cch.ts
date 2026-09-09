@@ -11,12 +11,25 @@ import type {
   CchProxyStatus,
   CchRealtime,
   CchServerIdentity,
+  CchSystemSettings,
+  CchUpstreamBillingProbeBatchResult,
   CchUsersPage,
 } from '@/src/types/cch';
 
 const nonNegativeNumber = z.number().finite().min(0);
 const nonNegativeNumeric = z.union([z.string(), nonNegativeNumber]);
 const upstreamCostStatusSchema = z.enum(['estimated', 'partial', 'unavailable']);
+const cchUpstreamBillingProbeSchema = z.object({
+  status: z.enum(['ok', 'unsupported', 'failed']),
+  effectiveRateMultiplier: nonNegativeNumber.optional(),
+  lastAttemptAt: z.string(),
+  nextProbeAt: z.string(),
+  receivedAt: z.string().optional(),
+  freshUntil: z.string().optional(),
+  failureCount: z.number().int().min(0).optional(),
+  httpStatus: z.number().int().min(100).max(599).optional(),
+  lastError: z.string().max(256).optional(),
+}).passthrough();
 
 const cchHealthComponentSchema = z.object({
   status: z.string().min(1),
@@ -53,6 +66,9 @@ const cchProviderSchema = z.object({
   isEnabled: z.boolean(),
   providerType: z.string().optional(),
   costMultiplier: nonNegativeNumber.optional(),
+  upstreamBillingProbeEnabled: z.boolean().optional(),
+  upstreamBillingProbe: cchUpstreamBillingProbeSchema.nullable().optional(),
+  upstreamBillingProbeNextAt: z.string().nullable().optional(),
   limit5hUsd: nonNegativeNumber.nullable().optional(),
   limitDailyUsd: nonNegativeNumber.nullable().optional(),
   limitWeeklyUsd: nonNegativeNumber.nullable().optional(),
@@ -104,6 +120,23 @@ const cchProviderSlotsSchema = z.object({
     usedSlots: z.number().int().min(0),
     totalSlots: z.number().int().min(0),
     totalVolume: nonNegativeNumber.optional(),
+  }).passthrough()),
+}).passthrough();
+
+const cchSystemSettingsSchema = z.object({
+  autoSortProviderPriorityEnabled: z.boolean().optional().default(false),
+}).passthrough();
+
+const cchUpstreamBillingProbeBatchResultSchema = z.object({
+  total: z.number().int().min(0),
+  ok: z.number().int().min(0),
+  failed: z.number().int().min(0),
+  unsupported: z.number().int().min(0),
+  items: z.array(z.object({
+    providerId: z.number().int().positive(),
+    status: z.enum(['ok', 'unsupported', 'failed']),
+    effectiveRateMultiplier: nonNegativeNumber.optional(),
+    lastError: z.string().max(256).optional(),
   }).passthrough()),
 }).passthrough();
 
@@ -211,6 +244,31 @@ export function getCchProviderHealth() {
 
 export function getCchProviderSlots() {
   return cchFetch<unknown>('/api/v1/dashboard/provider-slots').then((body) => parseCchResponse<CchProviderSlots>(cchProviderSlotsSchema, body));
+}
+
+export function getCchSystemSettings() {
+  return cchFetch<unknown>('/api/v1/system/settings').then((body) =>
+    parseCchResponse<CchSystemSettings>(cchSystemSettingsSchema, body)
+  );
+}
+
+export function updateCchAutoSortProviderPriority(enabled: boolean) {
+  return cchFetch<unknown>('/api/v1/system/settings', {
+    method: 'PUT',
+    body: JSON.stringify({ autoSortProviderPriorityEnabled: enabled }),
+  }).then((body) => parseCchResponse<CchSystemSettings>(cchSystemSettingsSchema, body));
+}
+
+export function probeCchProvidersUpstreamBilling() {
+  return cchFetch<unknown>('/api/v1/providers:upstream-billing:probe', {
+    method: 'POST',
+  }).then((body) => parseCchResponse<CchUpstreamBillingProbeBatchResult>(cchUpstreamBillingProbeBatchResultSchema, body));
+}
+
+export function resetCchProviderCircuit(providerId: number) {
+  return cchFetch<unknown>(`/api/v1/providers/${providerId}/circuit:reset`, {
+    method: 'POST',
+  }).then((body) => parseCchResponse(z.object({ ok: z.literal(true) }).passthrough(), body));
 }
 
 export function getCchUsers(query?: string) {

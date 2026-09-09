@@ -59,12 +59,46 @@ export type CchProviderModelStatistics = {
   uncoveredRequestCount: number;
 };
 
+export type CchUpstreamBillingProbeStatus = 'ok' | 'unsupported' | 'failed';
+
+export type CchUpstreamBillingProbe = {
+  status: CchUpstreamBillingProbeStatus;
+  effectiveRateMultiplier?: number;
+  lastAttemptAt: string;
+  nextProbeAt: string;
+  receivedAt?: string;
+  freshUntil?: string;
+  failureCount?: number;
+  httpStatus?: number;
+  lastError?: string;
+};
+
+export type CchUpstreamBillingProbeBatchResult = {
+  total: number;
+  ok: number;
+  failed: number;
+  unsupported: number;
+  items: Array<{
+    providerId: number;
+    status: CchUpstreamBillingProbeStatus;
+    effectiveRateMultiplier?: number;
+    lastError?: string;
+  }>;
+};
+
+export type CchSystemSettings = {
+  autoSortProviderPriorityEnabled: boolean;
+};
+
 export type CchProvider = {
   id: number;
   name: string;
   isEnabled: boolean;
   providerType?: string;
   costMultiplier?: number;
+  upstreamBillingProbeEnabled?: boolean;
+  upstreamBillingProbe?: CchUpstreamBillingProbe | null;
+  upstreamBillingProbeNextAt?: string | null;
   limit5hUsd?: number | null;
   limitDailyUsd?: number | null;
   limitWeeklyUsd?: number | null;
