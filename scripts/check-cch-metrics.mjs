@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 
-import { compareCchProvidersByLiveActivity, summarizeCchProviders } from '../src/lib/cch-metrics.ts';
+import { compareCchProvidersByLiveActivity, resolveCchProviderGroups, resolveCchProviderMultiplier, summarizeCchProviders, summarizeCchProxyStatus } from '../src/lib/cch-metrics.ts';
 
 const providers = [
   { id: 1, isEnabled: true, upstreamBillingProbeEnabled: true, upstreamBillingProbe: { status: 'ok', effectiveRateMultiplier: 2 }, statistics: { todayCalls: 10, todayCost: '1.20', todayUpstreamCost: '0.80', coveredRequestCount: 8, uncoveredRequestCount: 2, effectiveRateMultiplier: '2', totalTokens: 1000, inputTokens: 500, outputTokens: 200, cacheCreationTokens: 200, cacheReadTokens: 100 } },
@@ -61,6 +61,13 @@ assert.deepEqual(
   [...providers].sort((left, right) => compareCchProvidersByLiveActivity(left, right, liveSlots)).map((provider) => provider.id),
   [2, 1],
 );
+assert.deepEqual(
+  [...providers]
+    .map((provider) => ({ ...provider, priority: provider.id === 1 ? 9 : 1, priorityLocked: provider.id === 1 }))
+    .sort((left, right) => compareCchProvidersByLiveActivity(left, right, liveSlots))
+    .map((provider) => provider.id),
+  [1, 2],
+);
 
 const cacheOnlySummary = summarizeCchProviders(
   [{ id: 3, isEnabled: true, statistics: { todayCalls: 1, todayCost: 0, inputTokens: 80, cacheCreationTokens: 10, cacheReadTokens: 10 } }],
@@ -70,5 +77,51 @@ const cacheOnlySummary = summarizeCchProviders(
 assert.equal(cacheOnlySummary.hasEnhancedStatistics, false);
 assert.equal(cacheOnlySummary.hasCacheStatistics, true);
 assert.equal(cacheOnlySummary.cacheHitRate, 0.1);
+
+assert.deepEqual(
+  resolveCchProviderMultiplier({
+    costMultiplier: 0.5,
+    upstreamBillingProbe: { status: 'ok', effectiveRateMultiplier: 0.09 },
+  }),
+  { value: 0.09, source: 'probe' },
+);
+assert.deepEqual(
+  resolveCchProviderMultiplier({
+    costMultiplier: 0.5,
+    upstreamBillingProbe: { status: 'failed', effectiveRateMultiplier: 0.09 },
+  }),
+  { value: 0.09, source: 'historical-probe' },
+);
+assert.deepEqual(
+  resolveCchProviderMultiplier({
+    costMultiplier: 0.5,
+    upstreamBillingProbe: { status: 'unsupported', effectiveRateMultiplier: 0.09 },
+  }),
+  { value: 0.09, source: 'historical-probe' },
+);
+assert.deepEqual(
+  resolveCchProviderMultiplier({
+    costMultiplier: 0.5,
+    upstreamBillingProbe: { status: 'unsupported' },
+  }),
+  { value: 0.5, source: 'manual' },
+);
+assert.deepEqual(
+  resolveCchProviderMultiplier({ upstreamBillingProbe: null }),
+  { value: null, source: 'unavailable' },
+);
+
+assert.deepEqual(resolveCchProviderGroups(null), ['default']);
+assert.deepEqual(resolveCchProviderGroups('cli，chat\ncli'), ['cli', 'chat']);
+
+const liveStatus = summarizeCchProxyStatus([
+  { activeCount: 2, activeRequests: [{ providerId: 1 }, { providerId: 1 }] },
+  { activeCount: 1, activeRequests: [{ providerId: 2 }] },
+]);
+assert.equal(liveStatus.totalActiveRequests, 3);
+assert.equal(liveStatus.hasProviderDetails, true);
+assert.deepEqual([...liveStatus.activeRequestsByProviderId], [[1, 2], [2, 1]]);
+assert.equal(summarizeCchProxyStatus([{ activeCount: 1 }]).hasProviderDetails, false);
+assert.equal(summarizeCchProxyStatus([{ activeCount: 1, activeRequests: [] }]).hasProviderDetails, false);
 
 console.log('CCH provider metrics self-check passed.');

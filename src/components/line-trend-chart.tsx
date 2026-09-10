@@ -18,7 +18,7 @@ type LineTrendChartProps = {
 
 export function LineTrendChart({
   points,
-  color = '#1d5f55',
+  color = '#111315',
   title,
   subtitle,
   formatValue = (value) => `${value}`,
@@ -50,12 +50,12 @@ export function LineTrendChart({
   const tickPoints = points.filter((_, index) => index === 0 || index === points.length - 1 || index % tickStep === 0);
 
   return (
-    <View className="rounded-[18px] bg-[#fbf8f2] p-4">
-      <Text className="text-xs uppercase tracking-[1.6px] text-[#7d7468]">{title}</Text>
-      <Text className={`mt-1 font-bold text-[#16181a] ${compact ? 'text-[22px]' : 'text-[28px]'}`}>{formatValue(latest)}</Text>
-      <Text numberOfLines={1} className="mt-1 text-xs text-[#8a8072]">{subtitle}</Text>
+    <View className="rounded-[18px] bg-[#ffffff] p-4">
+      <Text className="text-xs uppercase tracking-[1.6px] text-[#5f6468]">{title}</Text>
+      <Text className={`mt-1 font-bold text-[#111315] ${compact ? 'text-[22px]' : 'text-[28px]'}`}>{formatValue(latest)}</Text>
+      <Text numberOfLines={1} className="mt-1 text-xs text-[#8b9094]">{subtitle}</Text>
 
-      <View className={`overflow-hidden rounded-[14px] bg-[#f4efe4] p-3 ${compact ? 'mt-3' : 'mt-4'}`}>
+      <View className={`overflow-hidden rounded-[14px] bg-[#f6f7f7] p-3 ${compact ? 'mt-3' : 'mt-4'}`}>
         <Svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`}>
           <Defs>
             <LinearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
@@ -69,7 +69,7 @@ export function LineTrendChart({
 
         <View className="mt-2 flex-row justify-between">
           {tickPoints.map((point, index) => (
-            <Text key={`${point.label}-${index}`} className={`text-[#7d7468] ${compact ? 'text-[10px]' : 'text-xs'}`}>
+            <Text key={`${point.label}-${index}`} className={`text-[#5f6468] ${compact ? 'text-[10px]' : 'text-xs'}`}>
               {point.label}
             </Text>
           ))}

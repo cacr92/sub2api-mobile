@@ -10,16 +10,16 @@ import { getDashboardSnapshot, getUsageStats, getUser, listUserApiKeys, updateUs
 import type { AdminApiKey, BalanceOperation } from '@/src/types/admin';
 
 const colors = {
-  page: '#f4efe4',
-  card: '#fbf8f2',
-  text: '#16181a',
-  subtext: '#6f665c',
-  border: '#e7dfcf',
-  primary: '#1d5f55',
-  dark: '#1b1d1f',
-  errorBg: '#f7e1d6',
-  errorText: '#a4512b',
-  muted: '#f7f1e6',
+  page: '#f6f7f7',
+  card: '#ffffff',
+  text: '#111315',
+  subtext: '#5f6468',
+  border: '#e8e9e9',
+  primary: '#111315',
+  dark: '#111315',
+  errorBg: '#fdecea',
+  errorText: '#5f6468',
+  muted: '#f6f7f7',
 };
 
 type RangeKey = '24h' | '7d' | '30d';
@@ -168,8 +168,8 @@ function MetricCard({ label, value }: { label: string; value: string }) {
 
 function StatusBadge({ text }: { text: string }) {
   const normalized = text.toLowerCase();
-  const backgroundColor = normalized === 'active' ? '#dff4ea' : normalized === 'inactive' || normalized === 'disabled' ? '#ece5da' : '#f7e1d6';
-  const color = normalized === 'active' ? '#17663f' : normalized === 'inactive' || normalized === 'disabled' ? '#6f665c' : '#a4512b';
+  const backgroundColor = normalized === 'active' ? '#f6f7f7' : normalized === 'inactive' || normalized === 'disabled' ? '#e8e9e9' : '#fdecea';
+  const color = normalized === 'active' ? '#111315' : normalized === 'inactive' || normalized === 'disabled' ? '#5f6468' : '#5f6468';
 
   return (
     <View style={{ backgroundColor, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 }}>
@@ -184,13 +184,13 @@ function CopyInlineButton({ copied, onPress }: { copied: boolean; onPress: () =>
       onPress={onPress}
       style={{
         marginLeft: 8,
-        backgroundColor: copied ? '#dff4ea' : '#e7dfcf',
+        backgroundColor: copied ? '#f6f7f7' : '#e8e9e9',
         borderRadius: 999,
         paddingHorizontal: 10,
         paddingVertical: 6,
       }}
     >
-      <Text style={{ fontSize: 11, fontWeight: '700', color: copied ? '#17663f' : '#4e463e' }}>{copied ? '已复制' : '复制'}</Text>
+      <Text style={{ fontSize: 11, fontWeight: '700', color: copied ? '#111315' : '#111315' }}>{copied ? '已复制' : '复制'}</Text>
     </Pressable>
   );
 }
@@ -431,14 +431,14 @@ export default function UserDetailScreen() {
                   disabled={statusMutation.isPending || user.role?.toLowerCase() === 'admin'}
                   onPress={handleToggleUserStatus}
                   style={{
-                    backgroundColor: user.status === 'disabled' ? colors.primary : '#8b3f1f',
+                    backgroundColor: user.status === 'disabled' ? colors.primary : '#d92d20',
                     borderRadius: 10,
                     paddingHorizontal: 12,
                     paddingVertical: 10,
                     opacity: statusMutation.isPending || user.role?.toLowerCase() === 'admin' ? 0.6 : 1,
                   }}
                 >
-                  <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>
+                  <Text style={{ color: '#ffffff', fontSize: 12, fontWeight: '700' }}>
                     {statusMutation.isPending ? '处理中...' : user.status === 'disabled' ? '启用用户' : '禁用用户'}
                   </Text>
                 </Pressable>
@@ -471,7 +471,7 @@ export default function UserDetailScreen() {
                       borderColor: active ? colors.primary : colors.border,
                     }}
                   >
-                    <Text style={{ color: active ? '#fff' : colors.text, fontSize: 12, fontWeight: '700' }}>{item.label}</Text>
+                    <Text style={{ color: active ? '#ffffff' : colors.text, fontSize: 12, fontWeight: '700' }}>{item.label}</Text>
                   </Pressable>
                 );
               })}
@@ -504,7 +504,7 @@ export default function UserDetailScreen() {
                   title="用量趋势"
                   subtitle={`${range.start_date} 到 ${range.end_date}`}
                   points={trendPoints}
-                  color="#1d5f55"
+                  color="#111315"
                   formatValue={(value) => formatTokenValue(value)}
                   compact
                 />
@@ -526,7 +526,7 @@ export default function UserDetailScreen() {
               value={searchText}
               onChangeText={setSearchText}
               placeholder="搜索名称 / Key / 分组"
-              placeholderTextColor="#9a9082"
+              placeholderTextColor="#5f6468"
               style={{
                 backgroundColor: colors.muted,
                 borderWidth: 1,
@@ -583,7 +583,7 @@ export default function UserDetailScreen() {
                       borderColor: active ? colors.primary : colors.border,
                     }}
                   >
-                    <Text style={{ color: active ? '#fff' : colors.text, fontWeight: '700' }}>{item.label}</Text>
+                    <Text style={{ color: active ? '#ffffff' : colors.text, fontWeight: '700' }}>{item.label}</Text>
                   </Pressable>
                 );
               })}
@@ -593,7 +593,7 @@ export default function UserDetailScreen() {
               value={amount}
               onChangeText={setAmount}
               placeholder="输入金额，例如 10"
-              placeholderTextColor="#9a9082"
+              placeholderTextColor="#5f6468"
               keyboardType="decimal-pad"
               style={{
                 backgroundColor: colors.muted,
@@ -611,7 +611,7 @@ export default function UserDetailScreen() {
               value={notes}
               onChangeText={setNotes}
               placeholder="备注（可选）"
-              placeholderTextColor="#9a9082"
+              placeholderTextColor="#5f6468"
               style={{
                 backgroundColor: colors.muted,
                 borderWidth: 1,
@@ -631,7 +631,7 @@ export default function UserDetailScreen() {
             ) : null}
 
             <Pressable onPress={submitBalance} style={{ backgroundColor: colors.dark, borderRadius: 12, paddingVertical: 14, alignItems: 'center' }}>
-              <Text style={{ color: '#fff', fontWeight: '700' }}>{balanceMutation.isPending ? '提交中...' : '确认提交'}</Text>
+              <Text style={{ color: '#ffffff', fontWeight: '700' }}>{balanceMutation.isPending ? '提交中...' : '确认提交'}</Text>
             </Pressable>
           </Section>
         </ScrollView>

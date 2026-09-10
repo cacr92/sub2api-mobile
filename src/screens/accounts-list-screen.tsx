@@ -90,7 +90,7 @@ function StatusFilterSegment({
       accessibilityState={{ selected }}
       onPress={onPress}
       className={selected
-        ? 'min-h-10 flex-1 items-center justify-center rounded-[8px] bg-[#1f6759] px-1.5'
+        ? 'min-h-10 flex-1 items-center justify-center rounded-[8px] bg-[#111315] px-1.5'
         : 'min-h-10 flex-1 items-center justify-center rounded-[8px] px-1.5'}
       style={({ pressed }) => ({ minWidth: 0, opacity: pressed ? 0.76 : 1 })}
     >
@@ -98,7 +98,7 @@ function StatusFilterSegment({
         numberOfLines={1}
         adjustsFontSizeToFit
         minimumFontScale={0.72}
-        className={selected ? 'text-center text-xs font-semibold text-white' : 'text-center text-xs font-semibold text-[#5d564d]'}
+        className={selected ? 'text-center text-xs font-semibold text-white' : 'text-center text-xs font-semibold text-[#111315]'}
       >
         {label} {count}
       </Text>
@@ -128,22 +128,22 @@ function GroupFilterChip({
       accessibilityState={{ selected }}
       onPress={onPress}
       className={selected
-        ? 'max-w-full flex-row items-center gap-1.5 rounded-[8px] border border-[#1f6759] bg-[#1f6759] px-3 py-2'
-        : 'max-w-full flex-row items-center gap-1.5 rounded-[8px] border border-[#dfe5e1] bg-[#f7f9f8] px-3 py-2'}
+        ? 'max-w-full flex-row items-center gap-1.5 rounded-[8px] border border-[#111315] bg-[#111315] px-3 py-2'
+        : 'max-w-full flex-row items-center gap-1.5 rounded-[8px] border border-[#e8e9e9] bg-[#f6f7f7] px-3 py-2'}
       style={({ pressed }) => ({ opacity: pressed ? 0.76 : 1 })}
     >
       <View style={{ flexShrink: 1 }}>
-        <Text className={selected ? 'text-xs font-semibold leading-4 text-white' : 'text-xs font-semibold leading-4 text-[#4e463e]'}>
+        <Text className={selected ? 'text-xs font-semibold leading-4 text-white' : 'text-xs font-semibold leading-4 text-[#111315]'}>
           {label}
         </Text>
         {activityLabel ? (
-          <Text className={selected ? 'mt-0.5 text-[10px] font-medium leading-3 text-[#d9f0e9]' : 'mt-0.5 text-[10px] font-semibold leading-3 text-[#a4512b]'}>
+          <Text className={selected ? 'mt-0.5 text-[10px] font-medium leading-3 text-[#f6f7f7]' : 'mt-0.5 text-[10px] font-semibold leading-3 text-[#5f6468]'}>
             {activityLabel}
           </Text>
         ) : null}
       </View>
-      <View className={selected ? 'shrink-0 rounded-md bg-[#ffffff26] px-1.5 py-0.5' : 'shrink-0 rounded-md bg-[#e7dfcf] px-1.5 py-0.5'}>
-        <Text className={selected ? 'text-[10px] font-semibold text-white' : 'text-[10px] font-semibold text-[#6f665c]'}>{count}</Text>
+      <View className={selected ? 'shrink-0 rounded-md bg-[#ffffff] px-1.5 py-0.5' : 'shrink-0 rounded-md bg-[#e8e9e9] px-1.5 py-0.5'}>
+        <Text className={selected ? 'text-[10px] font-semibold text-white' : 'text-[10px] font-semibold text-[#5f6468]'}>{count}</Text>
       </View>
     </Pressable>
   );
@@ -167,13 +167,13 @@ function AccountRuntimeSummary({
   const limitText = runtime.limit === null ? '--' : `${runtime.limit}`;
   const utilizationText = runtime.utilizationPercent === null ? '--' : `${runtime.utilizationPercent}%`;
   const toneClassName = runtime.tone === 'full'
-    ? 'border-[#efc9bd] bg-[#fff7f3]'
-    : 'border-[#ead8aa] bg-[#fffaf0]';
+    ? 'border-[#fdecea] bg-[#f6f7f7]'
+    : 'border-[#f6f7f7] bg-[#f6f7f7]';
   const iconClassName = runtime.tone === 'full'
-    ? 'bg-[#f4d0c5]'
-    : 'bg-[#f7df9e]';
-  const accentColor = runtime.tone === 'full' ? '#a4512b' : '#8a5a12';
-  const progressColor = runtime.tone === 'full' ? '#b6472e' : '#c38a24';
+    ? 'bg-[#fdecea]'
+    : 'bg-[#f6f7f7]';
+  const accentColor = runtime.tone === 'full' ? '#5f6468' : '#5f6468';
+  const progressColor = runtime.tone === 'full' ? '#d92d20' : '#5f6468';
   const progressWidth = `${Math.min(runtime.utilizationPercent ?? 0, 100)}%` as `${number}%`;
   const activeModelText = runtime.activeModels.map((model) => `${model.model} ×${model.current}`).join(' · ');
   const modelLabel = activeModelText
@@ -198,31 +198,31 @@ function AccountRuntimeSummary({
               {runtime.label}
             </Text>
             {runtime.waiting > 0 ? (
-              <Text numberOfLines={1} className="shrink-0 text-[10px] font-bold text-[#a4512b]">排队 {runtime.waiting}</Text>
+              <Text numberOfLines={1} className="shrink-0 text-[10px] font-bold text-[#5f6468]">排队 {runtime.waiting}</Text>
             ) : null}
           </View>
-          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} className="mt-0.5 text-[10px] leading-4 text-[#7d7468]">
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} className="mt-0.5 text-[10px] leading-4 text-[#5f6468]">
             {runtime.waiting > 0 ? '正在等待可用并发槽位' : '上游账号正在承载请求'}
           </Text>
         </View>
         <View className="w-[76px] shrink-0 items-end">
-          <Text className="text-[9px] font-semibold text-[#7d7468]">当前并发</Text>
-          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.68} className="mt-0.5 text-[17px] font-bold leading-5 text-[#16181a]">
-            {runtime.current}<Text className="text-[10px] font-semibold text-[#8a8072]"> / {limitText}</Text>
+          <Text className="text-[9px] font-semibold text-[#5f6468]">当前并发</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.68} className="mt-0.5 text-[17px] font-bold leading-5 text-[#111315]">
+            {runtime.current}<Text className="text-[10px] font-semibold text-[#8b9094]"> / {limitText}</Text>
           </Text>
         </View>
       </View>
 
-      <Text numberOfLines={3} className={runtime.activeModels.length > 0 ? 'mt-2 text-[11px] leading-4 text-[#4e463e]' : 'mt-2 text-[11px] leading-4 text-[#7d7468]'}>
-        <Text className="font-bold text-[#1d5f55]">当前模型 </Text>{modelLabel}
+      <Text numberOfLines={3} className={runtime.activeModels.length > 0 ? 'mt-2 text-[11px] leading-4 text-[#111315]' : 'mt-2 text-[11px] leading-4 text-[#5f6468]'}>
+        <Text className="font-bold text-[#111315]">当前模型 </Text>{modelLabel}
       </Text>
 
       <View className="mt-2 flex-row items-center gap-2">
-        <View className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-[#e3ddd2]">
+        <View className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-[#e8e9e9]">
           <View className="h-full rounded-full" style={{ width: progressWidth, backgroundColor: progressColor }} />
         </View>
-        <Text numberOfLines={1} className="shrink-0 text-[10px] font-semibold text-[#6f665c]">占用 {utilizationText}</Text>
-        <Text numberOfLines={1} className="shrink-0 text-[10px] font-semibold text-[#6f665c]">优先级 {priority ?? '--'}</Text>
+        <Text numberOfLines={1} className="shrink-0 text-[10px] font-semibold text-[#5f6468]">占用 {utilizationText}</Text>
+        <Text numberOfLines={1} className="shrink-0 text-[10px] font-semibold text-[#5f6468]">优先级 {priority ?? '--'}</Text>
       </View>
     </View>
   );
@@ -243,18 +243,18 @@ function AccountModelUsageSummary({
   if (loading) {
     content = (
       <View className="flex-row items-center gap-2 py-1">
-        <ActivityIndicator color="#1d5f55" size="small" />
-        <Text className="text-[11px] text-[#7d7468]">正在加载模型用量</Text>
+        <ActivityIndicator color="#111315" size="small" />
+        <Text className="text-[11px] text-[#5f6468]">正在加载模型用量</Text>
       </View>
     );
   } else if (error) {
-    content = <Text className="text-[11px] leading-4 text-[#a4512b]">模型级费用暂不可用，请下拉重试。</Text>;
+    content = <Text className="text-[11px] leading-4 text-[#5f6468]">模型级费用暂不可用，请下拉重试。</Text>;
   } else if (!models) {
     content = estimate?.reason === 'account_not_eligible'
-      ? <Text className="text-[11px] leading-4 text-[#7d7468]">此账号暂不支持模型级上游费用统计。</Text>
-      : <Text className="text-[11px] leading-4 text-[#7d7468]">服务器尚未返回模型级调用明细。</Text>;
+      ? <Text className="text-[11px] leading-4 text-[#5f6468]">此账号暂不支持模型级上游费用统计。</Text>
+      : <Text className="text-[11px] leading-4 text-[#5f6468]">服务器尚未返回模型级调用明细。</Text>;
   } else if (models.length === 0) {
-    content = <Text className="text-[11px] leading-4 text-[#7d7468]">今天暂无模型调用记录。</Text>;
+    content = <Text className="text-[11px] leading-4 text-[#5f6468]">今天暂无模型调用记录。</Text>;
   } else {
     content = models.map((model, index) => {
       const modelName = model.model.trim() || '未标识模型';
@@ -274,19 +274,19 @@ function AccountModelUsageSummary({
       ].filter(Boolean).join(' · ');
 
       return (
-        <View key={`${modelName}-${index}`} className={index === 0 ? 'py-2.5' : 'border-t border-[#dfe5e1] py-2.5'}>
+        <View key={`${modelName}-${index}`} className={index === 0 ? 'py-2.5' : 'border-t border-[#e8e9e9] py-2.5'}>
           <View className="flex-row items-start gap-3">
             <View className="min-w-0 flex-1">
-              <Text numberOfLines={1} className="text-xs font-bold leading-4 text-[#4e463e]">{modelName}</Text>
-              <Text numberOfLines={1} className="mt-1 text-[10px] leading-4 text-[#7d7468]">调用 {requests.toLocaleString('en-US')} 次 · {formatTokenValue(totalTokens)} Token</Text>
-              <Text numberOfLines={2} className="mt-0.5 text-[10px] leading-4 text-[#8a8072]">{usageBreakdown}</Text>
+              <Text numberOfLines={1} className="text-xs font-bold leading-4 text-[#111315]">{modelName}</Text>
+              <Text numberOfLines={1} className="mt-1 text-[10px] leading-4 text-[#5f6468]">调用 {requests.toLocaleString('en-US')} 次 · {formatTokenValue(totalTokens)} Token</Text>
+              <Text numberOfLines={2} className="mt-0.5 text-[10px] leading-4 text-[#8b9094]">{usageBreakdown}</Text>
               {costDisplay.detail ? (
-                <Text numberOfLines={2} className={costDisplay.detailTone === 'warning' ? 'mt-1 text-[10px] leading-4 text-[#a4512b]' : 'mt-1 text-[10px] leading-4 text-[#7d7468]'}>{costDisplay.detail}</Text>
+                <Text numberOfLines={2} className={costDisplay.detailTone === 'warning' ? 'mt-1 text-[10px] leading-4 text-[#5f6468]' : 'mt-1 text-[10px] leading-4 text-[#5f6468]'}>{costDisplay.detail}</Text>
               ) : null}
             </View>
             <View className="w-[78px] shrink-0 items-end">
-              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.65} className={costDisplay.detailTone === 'warning' ? 'w-full text-right text-sm font-bold text-[#a4512b]' : 'w-full text-right text-sm font-bold text-[#1d5f55]'}>{costDisplay.value}</Text>
-              <Text className="mt-0.5 text-[10px] text-[#8a8072]">上游费用</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.65} className={costDisplay.detailTone === 'warning' ? 'w-full text-right text-sm font-bold text-[#5f6468]' : 'w-full text-right text-sm font-bold text-[#111315]'}>{costDisplay.value}</Text>
+              <Text className="mt-0.5 text-[10px] text-[#8b9094]">上游费用</Text>
             </View>
           </View>
         </View>
@@ -295,9 +295,9 @@ function AccountModelUsageSummary({
   }
 
   return (
-    <View className="overflow-hidden rounded-[8px] border border-[#d8e5e1] bg-[#f7fbf9]">
-      <View className="border-b border-[#d8e5e1] bg-[#eef7f3] px-3 py-2">
-        <Text className="text-[11px] font-bold text-[#1d5f55]">今日模型调用与上游费用</Text>
+    <View className="overflow-hidden rounded-[8px] border border-[#e8e9e9] bg-[#f6f7f7]">
+      <View className="border-b border-[#e8e9e9] bg-[#f6f7f7] px-3 py-2">
+        <Text className="text-[11px] font-bold text-[#111315]">今日模型调用与上游费用</Text>
       </View>
       <View className="px-3">{content}</View>
     </View>
@@ -308,21 +308,21 @@ function AccountOperationalSummary({ metrics }: { metrics: AccountOperationalMet
   if (metrics.length === 0) return null;
 
   return (
-    <View className="border-y border-[#dfe5e1] bg-[#f7f9f8] px-3 py-2.5">
-      <Text className="text-[11px] font-semibold text-[#65706c]">运行限额</Text>
+    <View className="border-y border-[#e8e9e9] bg-[#f6f7f7] px-3 py-2.5">
+      <Text className="text-[11px] font-semibold text-[#5f6468]">运行限额</Text>
       <View className="mt-2 flex-row flex-wrap gap-y-2">
         {metrics.map((metric) => (
           <View key={metric.label} className="min-w-0 px-1" style={{ width: '50%' }}>
-            <Text numberOfLines={1} className="text-[10px] text-[#7d7468]">{metric.label}</Text>
+            <Text numberOfLines={1} className="text-[10px] text-[#5f6468]">{metric.label}</Text>
             <Text
               numberOfLines={1}
               adjustsFontSizeToFit
               minimumFontScale={0.72}
               className={metric.tone === 'danger'
-                ? 'mt-0.5 text-xs font-bold text-[#a4512b]'
+                ? 'mt-0.5 text-xs font-bold text-[#5f6468]'
                 : metric.tone === 'warning'
-                  ? 'mt-0.5 text-xs font-bold text-[#8a5a12]'
-                  : 'mt-0.5 text-xs font-bold text-[#1d5f55]'}
+                  ? 'mt-0.5 text-xs font-bold text-[#5f6468]'
+                  : 'mt-0.5 text-xs font-bold text-[#111315]'}
             >
               {metric.value}
             </Text>
@@ -980,18 +980,18 @@ export function AccountsListScreen({ safeAreaEdges, showHeader = true }: Account
   const listHeader = useMemo(
     () => (
       <View className="pb-3">
-        <View className="rounded-[8px] border border-[#dfe5e1] bg-white p-3">
-          <View className="h-12 flex-row items-center rounded-[8px] bg-[#eef1ef] px-3.5">
-            <Search color="#7d7468" size={18} />
+        <View className="rounded-[8px] border border-[#e8e9e9] bg-white p-3">
+          <View className="h-12 flex-row items-center rounded-[8px] bg-[#e8e9e9] px-3.5">
+            <Search color="#5f6468" size={18} />
             <TextInput
               value={searchText}
               onChangeText={setSearchText}
               placeholder="搜索账号名称 / 平台"
-              placeholderTextColor="#9b9081"
+              placeholderTextColor="#8b9094"
               autoCapitalize="none"
               autoCorrect={false}
               returnKeyType="search"
-              className="ml-2.5 flex-1 py-0 text-[15px] text-[#16181a]"
+              className="ml-2.5 flex-1 py-0 text-[15px] text-[#111315]"
             />
             {searchText ? (
               <Pressable
@@ -1002,12 +1002,12 @@ export function AccountsListScreen({ safeAreaEdges, showHeader = true }: Account
                 className="ml-2 h-8 w-8 items-center justify-center rounded-full"
                 style={({ pressed }) => ({ opacity: pressed ? 0.55 : 1 })}
               >
-                <X color="#7d7468" size={17} />
+                <X color="#5f6468" size={17} />
               </Pressable>
             ) : null}
           </View>
 
-          <View className="mt-3 flex-row gap-1 rounded-[8px] bg-[#eef1ef] p-1">
+          <View className="mt-3 flex-row gap-1 rounded-[8px] bg-[#e8e9e9] p-1">
             {([
               ['all', '全部', summary.total],
               ['active', '正常', summary.active],
@@ -1028,10 +1028,10 @@ export function AccountsListScreen({ safeAreaEdges, showHeader = true }: Account
             <View className="mt-4">
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center gap-1.5">
-                  <Layers3 color="#7d7468" size={14} />
-                  <Text className="text-xs font-semibold text-[#5d564d]">账号分组</Text>
+                  <Layers3 color="#5f6468" size={14} />
+                  <Text className="text-xs font-semibold text-[#111315]">账号分组</Text>
                 </View>
-                <Text className="text-[11px] text-[#8a8072]">显示 {filteredItems.length} 个</Text>
+                <Text className="text-[11px] text-[#8b9094]">显示 {filteredItems.length} 个</Text>
               </View>
               <View className="mt-2 flex-row flex-wrap gap-2">
                 <GroupFilterChip
@@ -1059,14 +1059,14 @@ export function AccountsListScreen({ safeAreaEdges, showHeader = true }: Account
           ) : null}
 
           {recoverableGroupOptions.length > 0 || groupRecoveryNotice ? (
-            <View className="mt-4 border-t border-[#eee6d7] pt-3">
+            <View className="mt-4 border-t border-[#e8e9e9] pt-3">
               <View className="flex-row items-center justify-between gap-3">
                 <View className="flex-row min-w-0 flex-1 items-center gap-1.5">
-                  <TriangleAlert color="#a4512b" size={15} />
-                  <Text className="text-xs font-semibold text-[#5d564d]">异常分组</Text>
+                  <TriangleAlert color="#5f6468" size={15} />
+                  <Text className="text-xs font-semibold text-[#111315]">异常分组</Text>
                 </View>
                 {recoverableGroupOptions.length > 0 ? (
-                  <Text className="text-[11px] text-[#8a8072]">{recoverableGroupOptions.length} 个分组</Text>
+                  <Text className="text-[11px] text-[#8b9094]">{recoverableGroupOptions.length} 个分组</Text>
                 ) : null}
               </View>
 
@@ -1076,18 +1076,18 @@ export function AccountsListScreen({ safeAreaEdges, showHeader = true }: Account
                 return (
                   <View
                     key={group.id}
-                    className={index === 0 ? 'mt-2 flex-row items-center gap-3 py-2.5' : 'flex-row items-center gap-3 border-t border-[#eee6d7] py-2.5'}
+                    className={index === 0 ? 'mt-2 flex-row items-center gap-3 py-2.5' : 'flex-row items-center gap-3 border-t border-[#e8e9e9] py-2.5'}
                   >
                     <View className="min-w-0 flex-1">
-                      <Text numberOfLines={1} className="text-xs font-semibold text-[#4e463e]">{group.name}</Text>
-                      <Text className="mt-0.5 text-[11px] text-[#8a8072]">{group.accountCount} 个账号需要恢复</Text>
+                      <Text numberOfLines={1} className="text-xs font-semibold text-[#111315]">{group.name}</Text>
+                      <Text className="mt-0.5 text-[11px] text-[#8b9094]">{group.accountCount} 个账号需要恢复</Text>
                     </View>
                     <Pressable
                       accessibilityLabel={`一键恢复分组 ${group.name} 的 ${group.accountCount} 个异常账号`}
                       accessibilityRole="button"
                       disabled={groupRecoveryMutation.isPending}
                       onPress={() => handleRecoverGroup(group)}
-                      className="min-h-9 flex-row items-center justify-center gap-1.5 rounded-[8px] bg-[#1d5f55] px-3"
+                      className="min-h-9 flex-row items-center justify-center gap-1.5 rounded-[8px] bg-[#111315] px-3"
                       style={({ pressed }) => ({ opacity: groupRecoveryMutation.isPending ? 0.58 : pressed ? 0.78 : 1 })}
                     >
                       {isRecoveringGroup ? <ActivityIndicator color="#ffffff" size="small" /> : <RotateCcw color="#ffffff" size={14} />}
@@ -1099,10 +1099,10 @@ export function AccountsListScreen({ safeAreaEdges, showHeader = true }: Account
 
               {groupRecoveryNotice ? (
                 <Text className={groupRecoveryNotice.tone === 'success'
-                  ? 'mt-2 text-xs leading-5 text-[#1d5f55]'
+                  ? 'mt-2 text-xs leading-5 text-[#111315]'
                   : groupRecoveryNotice.tone === 'warning'
-                    ? 'mt-2 text-xs leading-5 text-[#8a5a12]'
-                    : 'mt-2 text-xs leading-5 text-[#a4512b]'}
+                    ? 'mt-2 text-xs leading-5 text-[#5f6468]'
+                    : 'mt-2 text-xs leading-5 text-[#5f6468]'}
                 >
                   恢复结果：{groupRecoveryNotice.message}
                 </Text>
@@ -1110,11 +1110,11 @@ export function AccountsListScreen({ safeAreaEdges, showHeader = true }: Account
             </View>
           ) : null}
 
-          <View className="mt-4 border-t border-[#eee6d7] pt-3">
+          <View className="mt-4 border-t border-[#e8e9e9] pt-3">
             <View className="flex-row items-center gap-3">
               <View className="min-w-0 flex-1">
-                <Text className="text-[11px] font-medium text-[#6f665c]">北京时间今日 00:00 起</Text>
-                <Text className="mt-0.5 text-[11px] text-[#9a9082]">最近调用优先，未调用账号置底</Text>
+                <Text className="text-[11px] font-medium text-[#5f6468]">北京时间今日 00:00 起</Text>
+                <Text className="mt-0.5 text-[11px] text-[#5f6468]">最近调用优先，未调用账号置底</Text>
               </View>
               {eligibleUpstreamBillingAccounts.length > 0 ? (
                 <Pressable
@@ -1122,7 +1122,7 @@ export function AccountsListScreen({ safeAreaEdges, showHeader = true }: Account
                   accessibilityRole="button"
                   disabled={isRefreshingUpstreamBilling}
                   onPress={() => void refreshUpstreamBilling()}
-                  className="min-h-10 flex-row items-center justify-center gap-1.5 rounded-[8px] bg-[#1f6759] px-3"
+                  className="min-h-10 flex-row items-center justify-center gap-1.5 rounded-[8px] bg-[#111315] px-3"
                   style={({ pressed }) => ({ opacity: isRefreshingUpstreamBilling ? 0.6 : pressed ? 0.78 : 1 })}
                 >
                   {isRefreshingUpstreamBilling ? <ActivityIndicator color="#ffffff" size="small" /> : <RefreshCw color="#ffffff" size={14} />}
@@ -1130,7 +1130,7 @@ export function AccountsListScreen({ safeAreaEdges, showHeader = true }: Account
                 </Pressable>
               ) : null}
             </View>
-            {upstreamBillingRefreshFeedback ? <Text className="mt-2 text-xs leading-5 text-[#7d7468]">{upstreamBillingRefreshFeedback}</Text> : null}
+            {upstreamBillingRefreshFeedback ? <Text className="mt-2 text-xs leading-5 text-[#5f6468]">{upstreamBillingRefreshFeedback}</Text> : null}
           </View>
         </View>
       </View>
@@ -1214,24 +1214,24 @@ export function AccountsListScreen({ safeAreaEdges, showHeader = true }: Account
             <View className="gap-3">
               <View className="gap-2">
                 <View className="flex-row items-start gap-2">
-                  <Clock3 color="#8a8072" size={14} />
-                  <Text className="min-w-0 flex-1 text-xs leading-4 text-[#7d7468]">
-                    <Text className="font-semibold text-[#5d564d]">最近调用</Text> {formatTime(account.last_used_at)}
+                  <Clock3 color="#8b9094" size={14} />
+                  <Text className="min-w-0 flex-1 text-xs leading-4 text-[#5f6468]">
+                    <Text className="font-semibold text-[#111315]">最近调用</Text> {formatTime(account.last_used_at)}
                   </Text>
                 </View>
                 {groupsText ? (
                   <View className="flex-row items-start gap-2">
-                    <Layers3 color="#8a8072" size={14} />
-                    <Text className="min-w-0 flex-1 text-xs leading-4 text-[#7d7468]">
-                      <Text className="font-semibold text-[#5d564d]">所属分组</Text> {groupsText}
+                    <Layers3 color="#8b9094" size={14} />
+                    <Text className="min-w-0 flex-1 text-xs leading-4 text-[#5f6468]">
+                      <Text className="font-semibold text-[#111315]">所属分组</Text> {groupsText}
                     </Text>
                   </View>
                 ) : null}
                 {expiryText ? (
                   <View className="flex-row items-start gap-2">
-                    <CalendarClock color={isExpired ? '#b6472e' : '#8a8072'} size={14} />
-                    <Text className={isExpired ? 'min-w-0 flex-1 text-xs leading-4 text-[#a4512b]' : 'min-w-0 flex-1 text-xs leading-4 text-[#7d7468]'}>
-                      <Text className={isExpired ? 'font-semibold text-[#a4512b]' : 'font-semibold text-[#5d564d]'}>
+                    <CalendarClock color={isExpired ? '#d92d20' : '#8b9094'} size={14} />
+                    <Text className={isExpired ? 'min-w-0 flex-1 text-xs leading-4 text-[#5f6468]' : 'min-w-0 flex-1 text-xs leading-4 text-[#5f6468]'}>
+                      <Text className={isExpired ? 'font-semibold text-[#5f6468]' : 'font-semibold text-[#111315]'}>
                         {isExpired ? '已到期' : '账号到期'}
                       </Text>{' '}{expiryText} · {account.auto_pause_on_expired === false ? '到期后不自动暂停' : '到期自动暂停'}
                     </Text>
@@ -1239,9 +1239,9 @@ export function AccountsListScreen({ safeAreaEdges, showHeader = true }: Account
                 ) : null}
                 {notes ? (
                   <View className="flex-row items-start gap-2">
-                    <StickyNote color="#8a8072" size={14} />
-                    <Text numberOfLines={2} className="min-w-0 flex-1 text-xs leading-4 text-[#7d7468]">
-                      <Text className="font-semibold text-[#5d564d]">备注</Text> {notes}
+                    <StickyNote color="#8b9094" size={14} />
+                    <Text numberOfLines={2} className="min-w-0 flex-1 text-xs leading-4 text-[#5f6468]">
+                      <Text className="font-semibold text-[#111315]">备注</Text> {notes}
                     </Text>
                   </View>
                 ) : null}
@@ -1249,60 +1249,60 @@ export function AccountsListScreen({ safeAreaEdges, showHeader = true }: Account
 
               {runtime ? <AccountRuntimeSummary runtime={runtime} priority={priority} /> : null}
 
-              <View className="flex-row overflow-hidden rounded-[8px] border border-[#d8e5e1] bg-[#f3f8f6]">
+              <View className="flex-row overflow-hidden rounded-[8px] border border-[#e8e9e9] bg-[#f6f7f7]">
                 <View className="min-h-[64px] flex-1 justify-center px-2.5 py-2.5">
-                  <Text numberOfLines={1} className="text-[11px] text-[#55756e]">上游倍率</Text>
-                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} className={upstreamBillingRate.detailTone === 'warning' ? 'mt-1 text-base font-bold text-[#a4512b]' : 'mt-1 text-base font-bold text-[#1d5f55]'}>
+                  <Text numberOfLines={1} className="text-[11px] text-[#5f6468]">上游倍率</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} className={upstreamBillingRate.detailTone === 'warning' ? 'mt-1 text-base font-bold text-[#5f6468]' : 'mt-1 text-base font-bold text-[#111315]'}>
                     {upstreamBillingRate.value}
                   </Text>
                 </View>
-                <View className="min-h-[64px] flex-1 justify-center border-l border-[#d8e5e1] px-2.5 py-2.5">
-                  <Text numberOfLines={1} className="text-[11px] text-[#55756e]">今日费用</Text>
-                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} className={upstreamBillingCostDisplay.detailTone === 'warning' ? 'mt-1 text-base font-bold text-[#a4512b]' : 'mt-1 text-base font-bold text-[#16181a]'}>
+                <View className="min-h-[64px] flex-1 justify-center border-l border-[#e8e9e9] px-2.5 py-2.5">
+                  <Text numberOfLines={1} className="text-[11px] text-[#5f6468]">今日费用</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} className={upstreamBillingCostDisplay.detailTone === 'warning' ? 'mt-1 text-base font-bold text-[#5f6468]' : 'mt-1 text-base font-bold text-[#111315]'}>
                     {upstreamBillingCostDisplay.value}
                   </Text>
                 </View>
-                <View className="min-h-[64px] flex-1 justify-center border-l border-[#d8e5e1] px-2.5 py-2.5">
-                  <Text numberOfLines={1} className="text-[11px] text-[#55756e]">今日 Token</Text>
-                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} className="mt-1 text-base font-bold text-[#16181a]">
+                <View className="min-h-[64px] flex-1 justify-center border-l border-[#e8e9e9] px-2.5 py-2.5">
+                  <Text numberOfLines={1} className="text-[11px] text-[#5f6468]">今日 Token</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} className="mt-1 text-base font-bold text-[#111315]">
                     {todayTokens === undefined ? '--' : formatTokenValue(todayTokens)}
                   </Text>
                 </View>
-                <View className="min-h-[64px] flex-1 justify-center border-l border-[#d8e5e1] px-2.5 py-2.5">
-                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} className="text-[11px] text-[#55756e]">今日缓存命中率</Text>
-                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.68} className={cacheHitRateQuery.error ? 'mt-1 text-base font-bold text-[#a4512b]' : 'mt-1 text-base font-bold text-[#1d5f55]'}>
+                <View className="min-h-[64px] flex-1 justify-center border-l border-[#e8e9e9] px-2.5 py-2.5">
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} className="text-[11px] text-[#5f6468]">今日缓存命中率</Text>
+                  <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.68} className={cacheHitRateQuery.error ? 'mt-1 text-base font-bold text-[#5f6468]' : 'mt-1 text-base font-bold text-[#111315]'}>
                     {formatCacheHitRate(cacheHitRate, cacheHitRateQuery.isLoading, Boolean(cacheHitRateQuery.error))}
                   </Text>
                 </View>
               </View>
 
               <View className="gap-1.5">
-                <Text className="text-[11px] font-semibold text-[#55756e]">首字延迟 · 最近 3 次</Text>
-                <View className="flex-row overflow-hidden rounded-[8px] border border-[#d8e5e1] bg-[#f7f9f8]">
+                <Text className="text-[11px] font-semibold text-[#5f6468]">首字延迟 · 最近 3 次</Text>
+                <View className="flex-row overflow-hidden rounded-[8px] border border-[#e8e9e9] bg-[#f6f7f7]">
                   <View className="min-h-[56px] flex-1 justify-center px-2.5 py-2">
-                    <Text numberOfLines={1} className="text-[10px] text-[#55756e]">最近</Text>
-                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} className="mt-1 text-sm font-bold text-[#1d5f55]">
+                    <Text numberOfLines={1} className="text-[10px] text-[#5f6468]">最近</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} className="mt-1 text-sm font-bold text-[#111315]">
                       {formatFirstTokenMetric(todayStats?.recent_first_token_ms?.[0], firstTokenStatsState)}
                     </Text>
                   </View>
-                  <View className="min-h-[56px] flex-1 justify-center border-l border-[#d8e5e1] px-2.5 py-2">
-                    <Text numberOfLines={1} className="text-[10px] text-[#55756e]">上次</Text>
-                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} className="mt-1 text-sm font-bold text-[#16181a]">
+                  <View className="min-h-[56px] flex-1 justify-center border-l border-[#e8e9e9] px-2.5 py-2">
+                    <Text numberOfLines={1} className="text-[10px] text-[#5f6468]">上次</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} className="mt-1 text-sm font-bold text-[#111315]">
                       {formatFirstTokenMetric(todayStats?.recent_first_token_ms?.[1], firstTokenStatsState)}
                     </Text>
                   </View>
-                  <View className="min-h-[56px] flex-1 justify-center border-l border-[#d8e5e1] px-2.5 py-2">
-                    <Text numberOfLines={1} className="text-[10px] text-[#55756e]">再上次</Text>
-                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} className="mt-1 text-sm font-bold text-[#16181a]">
+                  <View className="min-h-[56px] flex-1 justify-center border-l border-[#e8e9e9] px-2.5 py-2">
+                    <Text numberOfLines={1} className="text-[10px] text-[#5f6468]">再上次</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} className="mt-1 text-sm font-bold text-[#111315]">
                       {formatFirstTokenMetric(todayStats?.recent_first_token_ms?.[2], firstTokenStatsState)}
                     </Text>
                   </View>
                 </View>
               </View>
               {firstTokenStatsState === 'no_samples' ? (
-                <Text className="text-[10px] leading-4 text-[#7d7468]">今日暂无可识别的首字延迟。</Text>
+                <Text className="text-[10px] leading-4 text-[#5f6468]">今日暂无可识别的首字延迟。</Text>
               ) : firstTokenStatsState === 'error' ? (
-                <Text className="text-[10px] leading-4 text-[#a4512b]">首字延迟读取失败，请检查服务器连接。</Text>
+                <Text className="text-[10px] leading-4 text-[#5f6468]">首字延迟读取失败，请检查服务器连接。</Text>
               ) : null}
 
               <AccountModelUsageSummary
@@ -1314,25 +1314,25 @@ export function AccountsListScreen({ safeAreaEdges, showHeader = true }: Account
               <AccountOperationalSummary metrics={operationalMetrics} />
 
               {upstreamNotices.length > 0 ? (
-                <Text className="text-xs text-[#a4512b]">{upstreamNotices.join('；')}</Text>
+                <Text className="text-xs text-[#5f6468]">{upstreamNotices.join('；')}</Text>
               ) : null}
-              {account.error_message ? <Text className="text-xs text-[#a4512b]">异常信息：{account.error_message}</Text> : null}
+              {account.error_message ? <Text className="text-xs text-[#5f6468]">异常信息：{account.error_message}</Text> : null}
 
               {recovery.recoverable ? (
                 <View className={recovery.severity === 'danger'
-                  ? 'border-l-2 border-[#b6472e] bg-[#fff4f0] px-3 py-3'
-                  : 'border-l-2 border-[#c38a24] bg-[#fff9e8] px-3 py-3'}
+                  ? 'border-l-2 border-[#d92d20] bg-[#fdecea] px-3 py-3'
+                  : 'border-l-2 border-[#5f6468] bg-[#f6f7f7] px-3 py-3'}
                 >
                   <View className="flex-row items-start gap-2.5">
-                    <TriangleAlert color={recovery.severity === 'danger' ? '#b6472e' : '#9b6b16'} size={17} />
+                    <TriangleAlert color={recovery.severity === 'danger' ? '#d92d20' : '#5f6468'} size={17} />
                     <View className="min-w-0 flex-1">
                       <Text className={recovery.severity === 'danger'
-                        ? 'text-xs font-bold text-[#9f3f29]'
-                        : 'text-xs font-bold text-[#7b5515]'}
+                        ? 'text-xs font-bold text-[#d92d20]'
+                        : 'text-xs font-bold text-[#5f6468]'}
                       >
                         {recovery.reasons.length > 1 ? `${recovery.reasons.length} 项状态需要处理` : recovery.label}
                       </Text>
-                      <Text className="mt-1 text-xs leading-5 text-[#6f665c]">{recovery.detail}</Text>
+                      <Text className="mt-1 text-xs leading-5 text-[#5f6468]">{recovery.detail}</Text>
                     </View>
                   </View>
                   <Pressable
@@ -1379,7 +1379,7 @@ export function AccountsListScreen({ safeAreaEdges, showHeader = true }: Account
                         },
                       });
                     }}
-                    className="mt-3 min-h-10 flex-row items-center justify-center gap-2 rounded-[8px] bg-[#1d5f55] px-3"
+                    className="mt-3 min-h-10 flex-row items-center justify-center gap-2 rounded-[8px] bg-[#111315] px-3"
                     style={({ pressed }) => ({ opacity: isRecoveringCurrent ? 0.58 : pressed ? 0.78 : 1 })}
                   >
                     {isRecoveringCurrent
@@ -1394,7 +1394,7 @@ export function AccountsListScreen({ safeAreaEdges, showHeader = true }: Account
                 <Pressable
                   accessibilityLabel={`测试账号 ${account.name}`}
                   accessibilityRole="button"
-                  className="min-h-10 flex-1 flex-row items-center justify-center gap-2 rounded-[8px] bg-[#1b1d1f] px-3"
+                  className="min-h-10 flex-1 flex-row items-center justify-center gap-2 rounded-[8px] bg-[#111315] px-3"
                   disabled={isTestingCurrent}
                   style={({ pressed }) => ({ opacity: isTestingCurrent ? 0.58 : pressed ? 0.78 : 1 })}
                   onPress={(event) => {
@@ -1448,13 +1448,13 @@ export function AccountsListScreen({ safeAreaEdges, showHeader = true }: Account
                     });
                   }}
                 >
-                  {isTestingCurrent ? <ActivityIndicator color="#f6f1e8" size="small" /> : <Activity color="#f6f1e8" size={15} />}
-                  <Text className="text-xs font-semibold text-[#f6f1e8]">{isTestingCurrent ? '测试中' : '测试连接'}</Text>
+                  {isTestingCurrent ? <ActivityIndicator color="#f6f7f7" size="small" /> : <Activity color="#f6f7f7" size={15} />}
+                  <Text className="text-xs font-semibold text-[#f6f7f7]">{isTestingCurrent ? '测试中' : '测试连接'}</Text>
                 </Pressable>
                 <Pressable
                   accessibilityLabel={`${toggleLabel}调度账号 ${account.name}`}
                   accessibilityRole="button"
-                  className="min-h-10 flex-1 flex-row items-center justify-center gap-2 rounded-[8px] bg-[#e9edeb] px-3"
+                  className="min-h-10 flex-1 flex-row items-center justify-center gap-2 rounded-[8px] bg-[#f6f7f7] px-3"
                   disabled={isTogglingCurrent}
                   style={({ pressed }) => ({ opacity: isTogglingCurrent ? 0.58 : pressed ? 0.78 : 1 })}
                   onPress={(event) => {
@@ -1477,32 +1477,32 @@ export function AccountsListScreen({ safeAreaEdges, showHeader = true }: Account
                   }}
                 >
                   {isTogglingCurrent
-                    ? <ActivityIndicator color="#4e463e" size="small" />
+                    ? <ActivityIndicator color="#111315" size="small" />
                     : nextSchedulable
-                      ? <Play color="#4e463e" size={15} />
-                      : <Pause color="#4e463e" size={15} />}
-                  <Text className="text-xs font-semibold text-[#4e463e]">{isTogglingCurrent ? '处理中' : `${toggleLabel}调度`}</Text>
+                      ? <Play color="#111315" size={15} />
+                      : <Pause color="#111315" size={15} />}
+                  <Text className="text-xs font-semibold text-[#111315]">{isTogglingCurrent ? '处理中' : `${toggleLabel}调度`}</Text>
                 </Pressable>
               </View>
 
               {testFeedback ? (
                 <Text
                   className={testFeedback.tone === 'success'
-                    ? 'text-xs text-[#1d5f55]'
+                    ? 'text-xs text-[#111315]'
                     : testFeedback.tone === 'warning'
-                      ? 'text-xs text-[#8a5a12]'
-                      : 'text-xs text-[#a4512b]'}
+                      ? 'text-xs text-[#5f6468]'
+                      : 'text-xs text-[#5f6468]'}
                 >
                   测试结果：{testFeedback.message}
                 </Text>
               ) : null}
               {recoveryFeedback ? (
-                <Text className={recoveryFeedback.tone === 'success' ? 'text-xs text-[#1d5f55]' : 'text-xs text-[#a4512b]'}>
+                <Text className={recoveryFeedback.tone === 'success' ? 'text-xs text-[#111315]' : 'text-xs text-[#5f6468]'}>
                   恢复结果：{recoveryFeedback.message}
                 </Text>
               ) : null}
               {toggleFeedback ? (
-                <Text className={toggleFeedback.tone === 'success' ? 'text-xs text-[#1d5f55]' : toggleFeedback.tone === 'warning' ? 'text-xs text-[#8a5a12]' : 'text-xs text-[#a4512b]'}>
+                <Text className={toggleFeedback.tone === 'success' ? 'text-xs text-[#111315]' : toggleFeedback.tone === 'warning' ? 'text-xs text-[#5f6468]' : 'text-xs text-[#5f6468]'}>
                   调度结果：{toggleFeedback.message}
                 </Text>
               ) : null}
@@ -1555,7 +1555,7 @@ export function AccountsListScreen({ safeAreaEdges, showHeader = true }: Account
               void cacheHitRateQuery.refetch();
               void upstreamBillingCosts24hQuery.refetch();
             }}
-            tintColor="#1d5f55"
+            tintColor="#111315"
           />
         )}
         ListHeaderComponent={listHeader}

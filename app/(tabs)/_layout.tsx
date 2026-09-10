@@ -1,8 +1,11 @@
 import { Redirect, Tabs } from 'expo-router';
+import { BlurView } from 'expo-blur';
 import { ChartNoAxesCombined, KeyRound, Server, Settings2, Store, Users } from 'lucide-react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 
 import { adminConfigState, hasAuthenticatedAdminSession } from '@/src/store/admin-config';
 import { serviceModeState } from '@/src/store/service-mode';
+import { glass } from '@/src/theme';
 
 const { useSnapshot } = require('valtio/react');
 
@@ -20,16 +23,27 @@ export default function TabsLayout() {
       initialRouteName="monitor"
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#1d5f55',
-        tabBarInactiveTintColor: '#8a8072',
+        tabBarActiveTintColor: '#111315',
+        tabBarInactiveTintColor: '#8b9094',
         tabBarStyle: {
-          backgroundColor: '#ffffff',
-          borderTopColor: '#dfe5e1',
-          borderTopWidth: 1,
+          backgroundColor: 'transparent',
+          borderTopColor: glass.borderSoft,
+          borderTopWidth: StyleSheet.hairlineWidth,
           height: 84,
           paddingTop: 10,
           paddingBottom: 18,
+          elevation: 0,
         },
+        tabBarBackground: () => (
+          <BlurView
+            intensity={glass.blur.chrome}
+            tint="light"
+            {...(Platform.OS === 'android' ? { experimentalBlurMethod: 'dimezisBlurView' as const } : {})}
+            style={StyleSheet.absoluteFill}
+          >
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: glass.fill.chrome }]} />
+          </BlurView>
+        ),
       }}
     >
       <Tabs.Screen

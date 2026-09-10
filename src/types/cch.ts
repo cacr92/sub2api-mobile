@@ -94,7 +94,10 @@ export type CchProvider = {
   id: number;
   name: string;
   isEnabled: boolean;
+  priority: number;
+  priorityLocked: boolean;
   providerType?: string;
+  groupTag?: string | null;
   costMultiplier?: number;
   upstreamBillingProbeEnabled?: boolean;
   upstreamBillingProbe?: CchUpstreamBillingProbe | null;
@@ -174,6 +177,24 @@ export type CchProxyStatus = {
     userId: number;
     userName: string;
     activeCount: number;
+    activeRequests?: Array<{
+      requestId: number;
+      keyName: string;
+      providerId: number;
+      providerName: string;
+      model: string;
+      startTime: number;
+      duration: number;
+    }>;
+    lastRequest?: {
+      requestId: number;
+      keyName: string;
+      providerId: number;
+      providerName: string;
+      model: string;
+      endTime: number;
+      elapsed: number;
+    } | null;
   }>;
 };
 

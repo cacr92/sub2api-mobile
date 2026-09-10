@@ -40,35 +40,35 @@ function GroupRuntimeSummary({
       accessible
       accessibilityLabel={`分组正在调度，当前并发 ${current}，容量 ${max}，占用率 ${load}%，排队 ${waiting}`}
       className={hasQueue
-        ? 'mt-3 border-y border-[#efc9bd] bg-[#fff4f0] px-3 py-2.5'
-        : 'mt-3 border-y border-[#ead8aa] bg-[#fff9e8] px-3 py-2.5'}
+        ? 'mt-3 border-y border-[#fdecea] bg-[#fdecea] px-3 py-2.5'
+        : 'mt-3 border-y border-[#f6f7f7] bg-[#f6f7f7] px-3 py-2.5'}
     >
       <View className="flex-row items-center gap-2.5">
         <View className={hasQueue
-          ? 'h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f4d0c5]'
-          : 'h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f3d88b]'}
+          ? 'h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#fdecea]'
+          : 'h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f6f7f7]'}
         >
-          <Activity color={hasQueue ? '#a4512b' : '#8a5a12'} size={16} />
+          <Activity color={hasQueue ? '#5f6468' : '#5f6468'} size={16} />
         </View>
         <View className="min-w-0 flex-1">
-          <Text className={hasQueue ? 'text-xs font-bold text-[#a4512b]' : 'text-xs font-bold text-[#8a5a12]'}>
+          <Text className={hasQueue ? 'text-xs font-bold text-[#5f6468]' : 'text-xs font-bold text-[#5f6468]'}>
             {hasQueue ? '有请求排队' : '正在调度'}
           </Text>
-          <Text className="mt-0.5 text-[10px] text-[#7d7468]">当前请求正在使用此分组中的上游账号</Text>
+          <Text className="mt-0.5 text-[10px] text-[#5f6468]">当前请求正在使用此分组中的上游账号</Text>
         </View>
-        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} className="max-w-[96px] text-base font-bold text-[#17201d]">
-          {current}<Text className="text-[11px] font-semibold text-[#7d7468]"> / {max || '--'}</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.72} className="max-w-[96px] text-base font-bold text-[#111315]">
+          {current}<Text className="text-[11px] font-semibold text-[#5f6468]"> / {max || '--'}</Text>
         </Text>
       </View>
 
-      <View className="mt-2 h-1 overflow-hidden rounded-full bg-[#e3ddd2]">
-        <View className="h-full rounded-full" style={{ width: progressWidth, backgroundColor: hasQueue ? '#b6472e' : '#c38a24' }} />
+      <View className="mt-2 h-1 overflow-hidden rounded-full bg-[#e8e9e9]">
+        <View className="h-full rounded-full" style={{ width: progressWidth, backgroundColor: hasQueue ? '#d92d20' : '#5f6468' }} />
       </View>
       <View className="mt-2 flex-row flex-wrap gap-x-4 gap-y-1">
-        <Text className="text-[10px] font-medium text-[#6f665c]">占用率 {load}%</Text>
-        {hasQueue ? <Text className="text-[10px] font-semibold text-[#a4512b]">排队 {waiting}</Text> : null}
+        <Text className="text-[10px] font-medium text-[#5f6468]">占用率 {load}%</Text>
+        {hasQueue ? <Text className="text-[10px] font-semibold text-[#5f6468]">排队 {waiting}</Text> : null}
         {supplementalMetrics.map((metric) => (
-          <Text key={metric} className="text-[10px] font-medium text-[#6f665c]">{metric}</Text>
+          <Text key={metric} className="text-[10px] font-medium text-[#5f6468]">{metric}</Text>
         ))}
       </View>
     </View>
@@ -105,14 +105,14 @@ export default function GroupsScreen() {
   const listHeader = useMemo(
     () => (
       <View className="pb-4">
-        <View className="flex-row items-center rounded-[24px] bg-[#fbf8f2] px-4 py-3">
-          <Search color="#7d7468" size={18} />
+        <View className="flex-row items-center rounded-[24px] bg-[#ffffff] px-4 py-3">
+          <Search color="#5f6468" size={18} />
           <TextInput
             defaultValue=""
             onChangeText={setSearchText}
             placeholder="搜索分组名称"
-            placeholderTextColor="#9b9081"
-            className="ml-3 flex-1 text-base text-[#16181a]"
+            placeholderTextColor="#8b9094"
+            className="ml-3 flex-1 text-base text-[#111315]"
           />
         </View>
       </View>
@@ -134,13 +134,13 @@ export default function GroupsScreen() {
           icon={FolderKanban}
         >
           <View className="flex-row items-center gap-2">
-            <Layers3 color="#7d7468" size={14} />
-            <Text className="text-sm text-[#7d7468]">
+            <Layers3 color="#5f6468" size={14} />
+            <Text className="text-sm text-[#5f6468]">
               账号数 {group.account_count ?? 0} · {group.is_exclusive ? '独占分组' : '共享分组'}
             </Text>
           </View>
           {group.description?.trim() ? (
-            <Text numberOfLines={2} className="mt-2 text-xs leading-4 text-[#7d7468]">{group.description.trim()}</Text>
+            <Text numberOfLines={2} className="mt-2 text-xs leading-4 text-[#5f6468]">{group.description.trim()}</Text>
           ) : null}
           {hasRuntime ? <GroupRuntimeSummary runtime={runtime} capacity={capacityByGroupId.get(group.id)} /> : null}
         </ListCard>
@@ -157,7 +157,7 @@ export default function GroupsScreen() {
     <ScreenShell
       title="分组管理"
       subtitle=""
-      titleAside={<Text className="text-[11px] text-[#a2988a]">查看分组与调度归属。</Text>}
+      titleAside={<Text className="text-[11px] text-[#5f6468]">查看分组与调度归属。</Text>}
       variant="minimal"
       scroll={false}
     >
@@ -174,7 +174,7 @@ export default function GroupsScreen() {
               void opsConcurrencyQuery.refetch();
               void capacityQuery.refetch();
             }}
-            tintColor="#1d5f55"
+            tintColor="#111315"
           />
         )}
         ListHeaderComponent={listHeader}

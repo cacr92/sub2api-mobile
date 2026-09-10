@@ -8,16 +8,16 @@ import { createAccount } from '@/src/services/admin';
 import type { AccountType } from '@/src/types/admin';
 
 const colors = {
-  page: '#f4efe4',
-  card: '#fbf8f2',
-  text: '#16181a',
-  subtext: '#6f665c',
-  border: '#e7dfcf',
-  primary: '#1d5f55',
-  dark: '#1b1d1f',
-  errorBg: '#f7e1d6',
-  errorText: '#a4512b',
-  muted: '#f7f1e6',
+  page: '#f6f7f7',
+  card: '#ffffff',
+  text: '#111315',
+  subtext: '#5f6468',
+  border: '#e8e9e9',
+  primary: '#111315',
+  dark: '#111315',
+  errorBg: '#fdecea',
+  errorText: '#5f6468',
+  muted: '#f6f7f7',
 };
 
 const PLATFORM_OPTIONS = ['anthropic', 'openai', 'gemini', 'sora', 'antigravity'];
@@ -172,7 +172,7 @@ export default function CreateAccountScreen() {
               value={name}
               onChangeText={setName}
               placeholder="例如：openai-main"
-              placeholderTextColor="#9a9082"
+              placeholderTextColor="#5f6468"
               style={{
                 backgroundColor: colors.muted,
                 borderWidth: 1,
@@ -202,7 +202,7 @@ export default function CreateAccountScreen() {
                       backgroundColor: active ? colors.primary : colors.muted,
                     }}
                   >
-                    <Text style={{ color: active ? '#fff' : colors.text, fontSize: 12, fontWeight: '700' }}>{item}</Text>
+                    <Text style={{ color: active ? '#ffffff' : colors.text, fontSize: 12, fontWeight: '700' }}>{item}</Text>
                   </Pressable>
                 );
               })}
@@ -226,7 +226,7 @@ export default function CreateAccountScreen() {
                       backgroundColor: active ? colors.primary : colors.muted,
                     }}
                   >
-                    <Text style={{ color: active ? '#fff' : colors.text, fontSize: 12, fontWeight: '700' }}>{item.toUpperCase()}</Text>
+                    <Text style={{ color: active ? '#ffffff' : colors.text, fontSize: 12, fontWeight: '700' }}>{item.toUpperCase()}</Text>
                   </Pressable>
                 );
               })}
@@ -237,7 +237,7 @@ export default function CreateAccountScreen() {
               value={notes}
               onChangeText={setNotes}
               placeholder="例如：主线路账号"
-              placeholderTextColor="#9a9082"
+              placeholderTextColor="#5f6468"
               style={{
                 backgroundColor: colors.muted,
                 borderWidth: 1,
@@ -259,7 +259,7 @@ export default function CreateAccountScreen() {
                   value={baseUrl}
                   onChangeText={setBaseUrl}
                   placeholder="https://api.example.com"
-                  placeholderTextColor="#9a9082"
+                  placeholderTextColor="#5f6468"
                   autoCapitalize="none"
                   style={{
                     backgroundColor: colors.muted,
@@ -278,7 +278,7 @@ export default function CreateAccountScreen() {
                   value={apiKey}
                   onChangeText={setApiKey}
                   placeholder="sk-..."
-                  placeholderTextColor="#9a9082"
+                  placeholderTextColor="#5f6468"
                   autoCapitalize="none"
                   style={{
                     backgroundColor: colors.muted,
@@ -299,7 +299,7 @@ export default function CreateAccountScreen() {
                   value={accessToken}
                   onChangeText={setAccessToken}
                   placeholder="access_token"
-                  placeholderTextColor="#9a9082"
+                  placeholderTextColor="#5f6468"
                   autoCapitalize="none"
                   style={{
                     backgroundColor: colors.muted,
@@ -318,7 +318,7 @@ export default function CreateAccountScreen() {
                   value={refreshToken}
                   onChangeText={setRefreshToken}
                   placeholder="refresh_token"
-                  placeholderTextColor="#9a9082"
+                  placeholderTextColor="#5f6468"
                   autoCapitalize="none"
                   style={{
                     backgroundColor: colors.muted,
@@ -337,7 +337,7 @@ export default function CreateAccountScreen() {
                   value={clientId}
                   onChangeText={setClientId}
                   placeholder="client_id"
-                  placeholderTextColor="#9a9082"
+                  placeholderTextColor="#5f6468"
                   autoCapitalize="none"
                   style={{
                     backgroundColor: colors.muted,
@@ -358,7 +358,7 @@ export default function CreateAccountScreen() {
               value={extraCredentialsJson}
               onChangeText={setExtraCredentialsJson}
               placeholder='例如：{"project_id":"abc","tier_id":2}'
-              placeholderTextColor="#9a9082"
+              placeholderTextColor="#5f6468"
               multiline
               style={{
                 minHeight: 88,
@@ -381,7 +381,7 @@ export default function CreateAccountScreen() {
               onChangeText={setConcurrency}
               keyboardType="number-pad"
               placeholder="例如：10"
-              placeholderTextColor="#9a9082"
+              placeholderTextColor="#5f6468"
               style={{
                 backgroundColor: colors.muted,
                 borderWidth: 1,
@@ -400,7 +400,7 @@ export default function CreateAccountScreen() {
               onChangeText={setPriority}
               keyboardType="number-pad"
               placeholder="例如：0"
-              placeholderTextColor="#9a9082"
+              placeholderTextColor="#5f6468"
               style={{
                 backgroundColor: colors.muted,
                 borderWidth: 1,
@@ -419,7 +419,7 @@ export default function CreateAccountScreen() {
               onChangeText={setRateMultiplier}
               keyboardType="decimal-pad"
               placeholder="例如：1"
-              placeholderTextColor="#9a9082"
+              placeholderTextColor="#5f6468"
               style={{
                 backgroundColor: colors.muted,
                 borderWidth: 1,
@@ -438,7 +438,7 @@ export default function CreateAccountScreen() {
               onChangeText={setProxyId}
               keyboardType="number-pad"
               placeholder="例如：3"
-              placeholderTextColor="#9a9082"
+              placeholderTextColor="#5f6468"
               style={{
                 backgroundColor: colors.muted,
                 borderWidth: 1,
@@ -456,7 +456,7 @@ export default function CreateAccountScreen() {
               value={groupIds}
               onChangeText={setGroupIds}
               placeholder="例如：1,2,5"
-              placeholderTextColor="#9a9082"
+              placeholderTextColor="#5f6468"
               style={{
                 backgroundColor: colors.muted,
                 borderWidth: 1,
@@ -482,13 +482,13 @@ export default function CreateAccountScreen() {
             }}
             disabled={!canSubmit || createMutation.isPending}
             style={{
-              backgroundColor: !canSubmit || createMutation.isPending ? '#8a8072' : colors.dark,
+              backgroundColor: !canSubmit || createMutation.isPending ? '#8b9094' : colors.dark,
               borderRadius: 12,
               paddingVertical: 14,
               alignItems: 'center',
             }}
           >
-            <Text style={{ color: '#fff', fontWeight: '700' }}>{createMutation.isPending ? '提交中...' : '创建账号'}</Text>
+            <Text style={{ color: '#ffffff', fontWeight: '700' }}>{createMutation.isPending ? '提交中...' : '创建账号'}</Text>
           </Pressable>
         </ScrollView>
       </SafeAreaView>

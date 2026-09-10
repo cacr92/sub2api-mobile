@@ -16,16 +16,16 @@ import type { AdminUser, UsageStats } from '@/src/types/admin';
 const { useSnapshot } = require('valtio/react');
 
 const colors = {
-  page: '#f4efe4',
-  card: '#fbf8f2',
-  mutedCard: '#f1ece2',
-  primary: '#1d5f55',
-  text: '#16181a',
-  subtext: '#6f665c',
-  dangerBg: '#fbf1eb',
-  danger: '#c25d35',
-  accentBg: '#efe4cf',
-  accentText: '#8c5a22',
+  page: '#f6f7f7',
+  card: '#ffffff',
+  mutedCard: '#f6f7f7',
+  primary: '#111315',
+  text: '#111315',
+  subtext: '#5f6468',
+  dangerBg: '#fdecea',
+  danger: '#d92d20',
+  accentBg: '#f6f7f7',
+  accentText: '#5f6468',
 };
 
 type SortOrder = 'desc' | 'asc';
@@ -132,8 +132,8 @@ function UserCard({ user, usage }: { user: AdminUser; usage?: UsageStats }) {
           <Text numberOfLines={1} style={{ fontSize: 16, fontWeight: '800', color: colors.text }}>{user.email}</Text>
           <Text style={{ marginTop: 4, fontSize: 12, color: colors.subtext }}>最近使用 {formatActivityTime(user.last_used_at || user.updated_at || user.created_at)}</Text>
         </View>
-        <View style={{ alignSelf: 'flex-start', backgroundColor: user.status === 'inactive' || user.status === 'disabled' ? '#cfc5b7' : colors.primary, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 }}>
-          <Text style={{ fontSize: 10, fontWeight: '700', color: '#fff' }}>{statusLabel}</Text>
+        <View style={{ alignSelf: 'flex-start', backgroundColor: user.status === 'inactive' || user.status === 'disabled' ? '#e8e9e9' : colors.primary, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 }}>
+          <Text style={{ fontSize: 10, fontWeight: '700', color: '#ffffff' }}>{statusLabel}</Text>
         </View>
       </View>
 
@@ -192,7 +192,7 @@ function Sub2ApiUsersScreen() {
         <View style={{ marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 28, fontWeight: '700', color: colors.text }}>用户</Text>
-            <Text style={{ marginTop: 4, fontSize: 12, color: '#8a8072' }}>查看用户列表并进入详情页管理账号。</Text>
+            <Text style={{ marginTop: 4, fontSize: 12, color: '#8b9094' }}>查看用户列表并进入详情页管理账号。</Text>
           </View>
           <Pressable
             onPress={() => router.push('/users/create-user')}
@@ -205,7 +205,7 @@ function Sub2ApiUsersScreen() {
               justifyContent: 'center',
             }}
           >
-            <Text style={{ color: '#fff', fontSize: 24, lineHeight: 24, fontWeight: '500' }}>+</Text>
+            <Text style={{ color: '#ffffff', fontSize: 24, lineHeight: 24, fontWeight: '500' }}>+</Text>
           </Pressable>
         </View>
 
@@ -215,7 +215,7 @@ function Sub2ApiUsersScreen() {
               value={searchText}
               onChangeText={setSearchText}
               placeholder="搜索邮箱、用户名或备注"
-              placeholderTextColor="#9b9081"
+              placeholderTextColor="#8b9094"
               style={{ backgroundColor: colors.mutedCard, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 11, fontSize: 15, color: colors.text }}
             />
           </View>
@@ -236,7 +236,7 @@ function Sub2ApiUsersScreen() {
               style={{ marginTop: 14, alignSelf: 'flex-start', backgroundColor: colors.primary, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 12 }}
               onPress={() => router.push('/settings')}
             >
-              <Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>打开设置</Text>
+              <Text style={{ color: '#ffffff', fontSize: 13, fontWeight: '700' }}>打开设置</Text>
             </Pressable>
           </View>
         ) : usersQuery.isLoading ? (
@@ -257,7 +257,7 @@ function Sub2ApiUsersScreen() {
             data={users}
             keyExtractor={(item) => `${item.id}`}
             showsVerticalScrollIndicator={false}
-            refreshControl={<RefreshControl refreshing={usersQuery.isRefetching} onRefresh={() => void usersQuery.refetch()} tintColor="#1d5f55" />}
+            refreshControl={<RefreshControl refreshing={usersQuery.isRefetching} onRefresh={() => void usersQuery.refetch()} tintColor="#111315" />}
             contentContainerStyle={{ paddingBottom: 8, gap: 12, flexGrow: users.length === 0 ? 1 : 0 }}
             ListEmptyComponent={
               <View style={{ backgroundColor: colors.card, borderRadius: 18, padding: 16 }}>

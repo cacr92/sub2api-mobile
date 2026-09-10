@@ -31,6 +31,7 @@ import {
 } from '@/src/store/admin-config';
 import type { AdminSettings, StreamTimeoutAction } from '@/src/types/admin';
 import { serviceModeState } from '@/src/store/service-mode';
+import { radius, shadow } from '@/src/theme';
 
 const { useSnapshot } = require('valtio/react');
 
@@ -90,18 +91,18 @@ const runtimeProtectionKeys = {
 };
 
 const colors = {
-  page: '#f3f5f3',
+  page: '#ffffff',
   card: '#ffffff',
-  mutedCard: '#eef1ef',
-  primary: '#1f6759',
-  primarySoft: '#e7f2ee',
-  text: '#17201d',
-  subtext: '#65706c',
-  border: '#dfe5e1',
-  dangerBg: '#fff1ed',
-  danger: '#b84a32',
-  successBg: '#e7f2ee',
-  success: '#1f6759',
+  mutedCard: '#e8e9e9',
+  primary: '#111315',
+  primarySoft: '#f6f7f7',
+  text: '#111315',
+  subtext: '#5f6468',
+  border: '#e8e9e9',
+  dangerBg: '#fdecea',
+  danger: '#d92d20',
+  successBg: '#f6f7f7',
+  success: '#111315',
 };
 
 function getConnectionErrorMessage(error: unknown) {
@@ -169,7 +170,7 @@ function formatCheckedAt(value?: string) {
 
 function SettingsSection({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
-    <View style={{ marginHorizontal: -16, backgroundColor: colors.card, borderColor: colors.border, borderTopWidth: 1, borderBottomWidth: 1, paddingHorizontal: 16, paddingVertical: 16 }}>
+    <View style={{ borderRadius: radius.lg, backgroundColor: 'rgba(255,255,255,0.78)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)', paddingHorizontal: 16, paddingVertical: 16, ...shadow.card }}>
       <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text }}>{title}</Text>
       {subtitle ? <Text style={{ marginTop: 5, fontSize: 12, lineHeight: 18, color: colors.subtext }}>{subtitle}</Text> : null}
       <View style={{ marginTop: 14 }}>{children}</View>
@@ -200,7 +201,7 @@ function SettingToggleRow({
         accessibilityLabel={title}
         value={value}
         onValueChange={onValueChange}
-        trackColor={{ false: '#cfd6d2', true: '#75a99d' }}
+        trackColor={{ false: '#e8e9e9', true: '#5f6468' }}
         thumbColor={value ? colors.primary : '#ffffff'}
       />
     </View>
@@ -382,7 +383,7 @@ function ServerCard({
   onDelete: () => void;
 }) {
   return (
-    <View style={{ backgroundColor: colors.card, borderRadius: 8, padding: 14, borderWidth: 1, borderColor: active ? colors.primary : colors.border }}>
+    <View style={{ backgroundColor: 'rgba(255,255,255,0.78)', borderRadius: radius.md, padding: 14, borderWidth: 1, borderColor: active ? colors.primary : 'rgba(255,255,255,0.6)' }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
         <View style={{ width: 34, height: 34, alignItems: 'center', justifyContent: 'center', backgroundColor: active ? colors.primarySoft : colors.mutedCard, borderRadius: 8 }}>
           <Server color={active ? colors.primary : colors.subtext} size={17} />
@@ -819,7 +820,7 @@ function Sub2ApiSettingsScreen() {
                       value={value}
                       onChangeText={onChange}
                       placeholder="https://api.example.com"
-                      placeholderTextColor="#89928e"
+                      placeholderTextColor="#8b9094"
                       autoCapitalize="none"
                       autoCorrect={false}
                       style={{ minHeight: 48, backgroundColor: colors.mutedCard, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: colors.text }}
@@ -839,7 +840,7 @@ function Sub2ApiSettingsScreen() {
                         value={value}
                         onChangeText={onChange}
                         placeholder="admin-xxxxxxxx"
-                        placeholderTextColor="#89928e"
+                        placeholderTextColor="#8b9094"
                         autoCapitalize="none"
                         autoCorrect={false}
                         secureTextEntry={!showAdminKey}
@@ -875,7 +876,7 @@ function Sub2ApiSettingsScreen() {
                   disabled={connectionState === 'checking'}
                   style={({ pressed }) => ({ flex: 1, minHeight: 44, backgroundColor: colors.primary, borderRadius: 8, alignItems: 'center', justifyContent: 'center', opacity: connectionState === 'checking' ? 0.55 : pressed ? 0.78 : 1 })}
                 >
-                  <Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>{connectionState === 'checking' ? '正在检测' : '保存并使用'}</Text>
+                  <Text style={{ color: '#ffffff', fontSize: 13, fontWeight: '700' }}>{connectionState === 'checking' ? '正在检测' : '保存并使用'}</Text>
                 </Pressable>
                 <Pressable
                   onPress={() => {
@@ -968,7 +969,7 @@ function Sub2ApiSettingsScreen() {
                         value={value}
                         onChangeText={onChange}
                         placeholder="例如：价格按实际调用规则结算。"
-                        placeholderTextColor="#89928e"
+                        placeholderTextColor="#8b9094"
                         textAlignVertical="top"
                         style={{ minHeight: 92, marginTop: 9, borderWidth: 1, borderColor: colors.border, borderRadius: 8, backgroundColor: colors.mutedCard, paddingHorizontal: 12, paddingVertical: 10, color: colors.text, fontSize: 13, lineHeight: 19 }}
                       />
@@ -1036,8 +1037,8 @@ function Sub2ApiSettingsScreen() {
 
         <SettingsSection title="上游调度保护" subtitle="异常响应后的自动回避与状态处理">
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingBottom: 6 }}>
-            <View style={{ width: 34, height: 34, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff0c7' }}>
-              <ShieldAlert color="#8a5a12" size={17} />
+            <View style={{ width: 34, height: 34, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f6f7f7' }}>
+              <ShieldAlert color="#5f6468" size={17} />
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text }}>529 过载冷却</Text>
@@ -1186,7 +1187,7 @@ function Sub2ApiSettingsScreen() {
               />
             ))}
             {config.accounts.length === 0 ? (
-              <View style={{ backgroundColor: colors.card, borderRadius: 8, borderColor: colors.border, borderWidth: 1, padding: 16 }}>
+              <View style={{ backgroundColor: 'rgba(255,255,255,0.78)', borderRadius: radius.md, borderColor: 'rgba(255,255,255,0.6)', borderWidth: 1, padding: 16 }}>
                 <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text }}>还没有服务器</Text>
               </View>
             ) : null}

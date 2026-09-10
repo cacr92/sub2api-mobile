@@ -28,6 +28,7 @@ import {
   recoverAccountState,
 } from '@/src/services/admin';
 import { adminConfigState, hasAuthenticatedAdminSession, type AdminAccountProfile } from '@/src/store/admin-config';
+import { radius, shadow } from '@/src/theme';
 import type {
   AccountTodayStats,
   AdminAccount,
@@ -42,16 +43,16 @@ import type {
 const { useSnapshot } = require('valtio/react');
 
 const colors = {
-  page: '#f3f5f3',
+  page: '#ffffff',
   card: '#ffffff',
-  mutedCard: '#edf0ee',
-  primary: '#1f6759',
-  text: '#17201d',
-  subtext: '#65706c',
-  border: '#dfe5e1',
-  warning: '#946313',
-  dangerBg: '#fff1ed',
-  danger: '#b84a32',
+  mutedCard: '#f2f3f3',
+  primary: '#111315',
+  text: '#111315',
+  subtext: '#5f6468',
+  border: '#e8e9e9',
+  warning: '#5f6468',
+  dangerBg: '#fdecea',
+  danger: '#d92d20',
 };
 
 type RecoveryNotice = {
@@ -318,7 +319,7 @@ function getRecoveryErrorMessage(error: unknown) {
 
 function Section({ title, subtitle, children, right }: { title: string; subtitle?: string; children: React.ReactNode; right?: React.ReactNode }) {
   return (
-    <View style={{ marginHorizontal: -16, backgroundColor: colors.card, borderColor: colors.border, borderTopWidth: 1, borderBottomWidth: 1, paddingHorizontal: 16, paddingVertical: 16 }}>
+    <View style={{ borderRadius: radius.lg, backgroundColor: 'rgba(255,255,255,0.78)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)', paddingHorizontal: 16, paddingVertical: 16, ...shadow.card }}>
       <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text }}>{title}</Text>
@@ -402,8 +403,8 @@ function UpstreamCostSummary({
   return (
     <View style={{ borderColor: colors.border, borderTopWidth: 1, borderBottomWidth: 1 }}>
       <View style={{ flexDirection: 'row' }}>
-        <View style={{ width: '50%', minHeight: 94, justifyContent: 'center', paddingHorizontal: 13, paddingVertical: 13, backgroundColor: '#edf7f3' }}>
-          <Text numberOfLines={1} style={{ fontSize: 11, color: '#55756e' }}>上游估算成本</Text>
+        <View style={{ width: '50%', minHeight: 94, justifyContent: 'center', paddingHorizontal: 13, paddingVertical: 13, backgroundColor: '#f6f7f7' }}>
+          <Text numberOfLines={1} style={{ fontSize: 11, color: '#5f6468' }}>上游估算成本</Text>
           <Text
             numberOfLines={1}
             adjustsFontSizeToFit
@@ -524,14 +525,14 @@ function UpstreamCostGroupFilterChip({
         borderColor: selected ? colors.primary : colors.border,
         borderWidth: 1,
         borderRadius: 8,
-        backgroundColor: selected ? colors.primary : '#f7f9f8',
+        backgroundColor: selected ? colors.primary : '#f6f7f7',
         paddingHorizontal: 10,
         paddingVertical: 7,
         opacity: pressed ? 0.76 : 1,
       })}
     >
       <Text numberOfLines={1} style={{ maxWidth: 160, fontSize: 12, fontWeight: '600', color: selected ? '#ffffff' : colors.text }}>{label}</Text>
-      <View style={{ minWidth: 18, alignItems: 'center', borderRadius: 5, backgroundColor: selected ? '#ffffff26' : '#e6ece8', paddingHorizontal: 5, paddingVertical: 2 }}>
+      <View style={{ minWidth: 18, alignItems: 'center', borderRadius: 5, backgroundColor: selected ? '#ffffff' : '#e8e9e9', paddingHorizontal: 5, paddingVertical: 2 }}>
         <Text style={{ fontSize: 10, fontWeight: '700', color: selected ? '#ffffff' : colors.subtext }}>{count}</Text>
       </View>
     </Pressable>
@@ -649,36 +650,36 @@ function ServerIdentityBand({
   isProbing: boolean;
 }) {
   return (
-    <View style={{ marginHorizontal: -16, backgroundColor: '#202b27', paddingHorizontal: 16, paddingVertical: 15 }}>
+    <View style={{ marginHorizontal: -16, backgroundColor: '#111315', paddingHorizontal: 16, paddingVertical: 15 }}>
       <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
-        <View style={{ width: 38, height: 38, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: '#dcebe5' }}>
+        <View style={{ width: 38, height: 38, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f6f7f7' }}>
           <Server color={colors.primary} size={18} />
         </View>
         <View style={{ flex: 1, minWidth: 0 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', columnGap: 8, rowGap: 5 }}>
             <Text style={{ flexShrink: 1, fontSize: 15, lineHeight: 20, fontWeight: '700', color: '#ffffff' }}>{siteName}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#67c49e' }} />
-              <Text style={{ fontSize: 10, fontWeight: '700', color: '#9fd8c2' }}>{isProbing ? '检测中' : '已连接'}</Text>
+              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#111315' }} />
+              <Text style={{ fontSize: 10, fontWeight: '700', color: '#111315' }}>{isProbing ? '检测中' : '已连接'}</Text>
             </View>
           </View>
-          <Text style={{ marginTop: 4, fontSize: 11, lineHeight: 16, color: '#b9c4bf' }}>{baseUrl}</Text>
+          <Text style={{ marginTop: 4, fontSize: 11, lineHeight: 16, color: '#e8e9e9' }}>{baseUrl}</Text>
         </View>
       </View>
 
-      <View style={{ marginTop: 14, flexDirection: 'row', borderTopColor: '#3a4641', borderTopWidth: 1, paddingTop: 12 }}>
+      <View style={{ marginTop: 14, flexDirection: 'row', borderTopColor: '#111315', borderTopWidth: 1, paddingTop: 12 }}>
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={{ fontSize: 10, color: '#9ca9a3' }}>服务端版本</Text>
+          <Text style={{ fontSize: 10, color: '#5f6468' }}>服务端版本</Text>
           <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ marginTop: 4, fontSize: 13, fontWeight: '700', color: '#ffffff' }}>
             {identity?.version ? `v${identity.version.replace(/^v/i, '')}` : '--'}
           </Text>
         </View>
-        <View style={{ flex: 1, minWidth: 0, borderLeftColor: '#3a4641', borderLeftWidth: 1, paddingLeft: 12 }}>
-          <Text style={{ fontSize: 10, color: '#9ca9a3' }}>连接耗时</Text>
+        <View style={{ flex: 1, minWidth: 0, borderLeftColor: '#111315', borderLeftWidth: 1, paddingLeft: 12 }}>
+          <Text style={{ fontSize: 10, color: '#5f6468' }}>连接耗时</Text>
           <Text style={{ marginTop: 4, fontSize: 13, fontWeight: '700', color: '#ffffff' }}>{formatLatency(identity?.latency_ms)}</Text>
         </View>
-        <View style={{ flex: 1, minWidth: 0, borderLeftColor: '#3a4641', borderLeftWidth: 1, paddingLeft: 12 }}>
-          <Text style={{ fontSize: 10, color: '#9ca9a3' }}>最近检测</Text>
+        <View style={{ flex: 1, minWidth: 0, borderLeftColor: '#111315', borderLeftWidth: 1, paddingLeft: 12 }}>
+          <Text style={{ fontSize: 10, color: '#5f6468' }}>最近检测</Text>
           <Text style={{ marginTop: 4, fontSize: 13, fontWeight: '700', color: '#ffffff' }}>{formatCheckedAt(identity?.checked_at)}</Text>
         </View>
       </View>
@@ -1228,9 +1229,9 @@ export function MonitorScreen() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: 8,
-                borderColor: colors.border,
+                borderColor: 'rgba(255,255,255,0.6)',
                 borderWidth: 1,
-                backgroundColor: colors.card,
+                backgroundColor: 'rgba(255,255,255,0.78)',
                 opacity: isRefreshing ? 0.55 : pressed ? 0.75 : 1,
               })}
             >
@@ -1257,7 +1258,7 @@ export function MonitorScreen() {
               style={({ pressed }) => ({ marginTop: 14, alignSelf: 'flex-start', backgroundColor: colors.primary, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 12, opacity: pressed ? 0.78 : 1 })}
               onPress={() => router.push('/settings')}
             >
-              <Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>打开设置</Text>
+              <Text style={{ color: '#ffffff', fontSize: 13, fontWeight: '700' }}>打开设置</Text>
             </Pressable>
           </Section>
         ) : isLoading ? (
@@ -1271,9 +1272,9 @@ export function MonitorScreen() {
             </View>
             <View style={{ flexDirection: 'row', gap: 10, marginTop: 14 }}>
               <Pressable style={({ pressed }) => ({ flex: 1, backgroundColor: colors.primary, borderRadius: 8, paddingVertical: 12, alignItems: 'center', opacity: pressed ? 0.78 : 1 })} onPress={() => void refetchAll()}>
-                <Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>重试</Text>
+                <Text style={{ color: '#ffffff', fontSize: 13, fontWeight: '700' }}>重试</Text>
               </Pressable>
-              <Pressable style={({ pressed }) => ({ flex: 1, backgroundColor: '#edf0ee', borderRadius: 8, paddingVertical: 12, alignItems: 'center', opacity: pressed ? 0.78 : 1 })} onPress={() => router.push('/settings')}>
+              <Pressable style={({ pressed }) => ({ flex: 1, backgroundColor: '#f2f3f3', borderRadius: 8, paddingVertical: 12, alignItems: 'center', opacity: pressed ? 0.78 : 1 })} onPress={() => router.push('/settings')}>
                 <Text style={{ color: colors.text, fontSize: 13, fontWeight: '700' }}>检查设置</Text>
               </Pressable>
             </View>
@@ -1288,7 +1289,7 @@ export function MonitorScreen() {
                   accessibilityLabel="打开账号清单"
                   accessibilityRole="button"
                   onPress={() => router.navigate('/(tabs)/accounts')}
-                  style={({ pressed }) => ({ width: 38, height: 38, alignItems: 'center', justifyContent: 'center', borderRadius: 8, backgroundColor: '#edf0ee', opacity: pressed ? 0.72 : 1 })}
+                  style={({ pressed }) => ({ width: 38, height: 38, alignItems: 'center', justifyContent: 'center', borderRadius: 8, backgroundColor: '#f2f3f3', opacity: pressed ? 0.72 : 1 })}
                 >
                   <ChevronRight color={colors.text} size={18} />
                 </Pressable>
@@ -1429,7 +1430,7 @@ export function MonitorScreen() {
                           accessibilityLabel="打开账号清单"
                           accessibilityRole="button"
                           onPress={() => router.navigate('/(tabs)/accounts')}
-                          style={({ pressed }) => ({ width: 44, minHeight: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 8, backgroundColor: '#edf0ee', opacity: pressed ? 0.72 : 1 })}
+                          style={({ pressed }) => ({ width: 44, minHeight: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 8, backgroundColor: '#f2f3f3', opacity: pressed ? 0.72 : 1 })}
                         >
                           <ChevronRight color={colors.text} size={18} />
                         </Pressable>

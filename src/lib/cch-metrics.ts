@@ -1,5 +1,7 @@
 export type CchProviderMetricInput = {
   id: number;
+  priority?: number;
+  priorityLocked?: boolean;
   isEnabled: boolean;
   upstreamBillingProbeEnabled?: boolean;
   upstreamBillingProbe?: {
@@ -20,6 +22,85 @@ export type CchProviderMetricInput = {
     cacheReadTokens?: number;
   };
 };
+
+export type CchProviderMultiplierSource = 'probe' | 'historical-probe' | 'manual' | 'unavailable';
+
+export type CchProviderMultiplier = {
+  value: number | null;
+  source: CchProviderMultiplierSource;
+};
+
+export function resolveCchProviderGroups(groupTag?: string | null): string[] {
+  const groups = typeof groupTag === 'string'
+    ? groupTag
+      .split(/[,，\n\r]+/)
+      .map((group) => group.trim())
+      .filter(Boolean)
+    : [];
+  return groups.length > 0 ? [...new Set(groups)] : ['default'];
+}
+
+export type CchProxyStatusMetricInput = {
+  activeCount: number;
+  activeRequests?: Array<{ providerId: number }>;
+};
+
+export function summarizeCchProxyStatus(users: CchProxyStatusMetricInput[]) {
+  const activeRequestsByProviderId = new Map<number, number>();
+  let totalActiveRequests = 0;
+  let detailedActiveRequestCount = 0;
+  let hasProviderDetails = true;
+
+  for (const user of users) {
+    totalActiveRequests += toNonNegativeNumber(user.activeCount);
+    if (!Array.isArray(user.activeRequests)) {
+      hasProviderDetails = false;
+      continue;
+    }
+    detailedActiveRequestCount += user.activeRequests.length;
+    for (const request of user.activeRequests) {
+      if (!Number.isInteger(request.providerId) || request.providerId <= 0) {
+        hasProviderDetails = false;
+        continue;
+      }
+      activeRequestsByProviderId.set(
+        request.providerId,
+        (activeRequestsByProviderId.get(request.providerId) ?? 0) + 1
+      );
+    }
+  }
+
+  return {
+    activeRequestsByProviderId,
+    hasProviderDetails: hasProviderDetails && detailedActiveRequestCount === totalActiveRequests,
+    totalActiveRequests,
+  };
+}
+
+function isValidMultiplier(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0;
+}
+
+export function resolveCchProviderMultiplier(provider: {
+  costMultiplier?: number;
+  upstreamBillingProbe?: {
+    status: 'ok' | 'unsupported' | 'failed';
+    effectiveRateMultiplier?: number;
+  } | null;
+}): CchProviderMultiplier {
+  const probeMultiplier = provider.upstreamBillingProbe?.effectiveRateMultiplier;
+  if (provider.upstreamBillingProbe?.status === 'ok' && isValidMultiplier(probeMultiplier)) {
+    return { value: probeMultiplier, source: 'probe' };
+  }
+  // CCH keeps the last successful multiplier on both failed and unsupported snapshots.
+  if (provider.upstreamBillingProbe && isValidMultiplier(probeMultiplier)) {
+    return { value: probeMultiplier, source: 'historical-probe' };
+  }
+  if (isValidMultiplier(provider.costMultiplier)) {
+    return { value: provider.costMultiplier, source: 'manual' };
+  }
+  return { value: null, source: 'unavailable' };
+}
 
 export type CchProviderHealthMetricInput = {
   circuitState: 'closed' | 'open' | 'half-open';
@@ -61,6 +142,13 @@ export function compareCchProvidersByLiveActivity(
   right: CchProviderMetricInput,
   slotsByProviderId: ReadonlyMap<number, CchProviderSlotMetricInput>
 ) {
+  if (left.priorityLocked !== right.priorityLocked) {
+    return Number(right.priorityLocked) - Number(left.priorityLocked);
+  }
+  if (left.priorityLocked && right.priorityLocked && left.priority !== right.priority) {
+    return (left.priority ?? 0) - (right.priority ?? 0);
+  }
+
   const leftSlot = getCchProviderSlotSnapshot(slotsByProviderId.get(left.id));
   const rightSlot = getCchProviderSlotSnapshot(slotsByProviderId.get(right.id));
 

@@ -3,7 +3,7 @@ import '@/src/global.css';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { useEffect } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, AppState, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { queryClient } from '@/src/lib/query-client';
@@ -29,13 +29,24 @@ export default function RootLayout() {
       .catch(() => undefined);
   }, []);
 
+  useEffect(() => {
+    let previousState = AppState.currentState;
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if ((previousState === 'inactive' || previousState === 'background') && nextState === 'active') {
+        void queryClient.refetchQueries({ queryKey: ['cch'], type: 'active' });
+      }
+      previousState = nextState;
+    });
+    return () => subscription.remove();
+  }, []);
+
   const isReady = config.hydrated && cchConfig.hydrated && serviceMode.hydrated;
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryClientProvider client={queryClient}>
         {!isReady ? (
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f3f5f3' }}>
-            <ActivityIndicator color="#1d5f55" />
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#ffffff' }}>
+            <ActivityIndicator color="#111315" />
           </View>
         ) : (
           <Stack initialRouteName="(tabs)" screenOptions={{ headerShown: false }}>
@@ -49,8 +60,8 @@ export default function RootLayout() {
                 headerShown: true,
                 title: '用户详情',
                 headerBackTitle: '返回',
-                headerTintColor: '#16181a',
-                headerStyle: { backgroundColor: '#f3f5f3' },
+                headerTintColor: '#111315',
+                headerStyle: { backgroundColor: '#ffffff' },
                 headerShadowVisible: false,
               }}
             />
@@ -62,8 +73,8 @@ export default function RootLayout() {
                 headerShown: true,
                 title: '添加账号',
                 headerBackTitle: '返回',
-                headerTintColor: '#16181a',
-                headerStyle: { backgroundColor: '#f3f5f3' },
+                headerTintColor: '#111315',
+                headerStyle: { backgroundColor: '#ffffff' },
                 headerShadowVisible: false,
               }}
             />
@@ -75,8 +86,8 @@ export default function RootLayout() {
                 headerShown: true,
                 title: '添加用户',
                 headerBackTitle: '返回',
-                headerTintColor: '#16181a',
-                headerStyle: { backgroundColor: '#f3f5f3' },
+                headerTintColor: '#111315',
+                headerStyle: { backgroundColor: '#ffffff' },
                 headerShadowVisible: false,
               }}
             />
@@ -88,8 +99,8 @@ export default function RootLayout() {
                 headerShown: true,
                 title: '添加账号',
                 headerBackTitle: '返回',
-                headerTintColor: '#16181a',
-                headerStyle: { backgroundColor: '#f3f5f3' },
+                headerTintColor: '#111315',
+                headerStyle: { backgroundColor: '#ffffff' },
                 headerShadowVisible: false,
               }}
             />
@@ -101,8 +112,8 @@ export default function RootLayout() {
                 headerShown: true,
                 title: '账号清单',
                 headerBackTitle: '返回',
-                headerTintColor: '#16181a',
-                headerStyle: { backgroundColor: '#f3f5f3' },
+                headerTintColor: '#111315',
+                headerStyle: { backgroundColor: '#ffffff' },
                 headerShadowVisible: false,
               }}
             />

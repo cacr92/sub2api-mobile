@@ -6,11 +6,13 @@ import { Controller, useForm } from 'react-hook-form';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
 import { z } from 'zod';
 
+import { GlassSurface } from '@/src/components/glass-surface';
 import { ServiceModeControl } from '@/src/components/service-mode-control';
 import { ScreenShell } from '@/src/components/screen-shell';
 import { getCchErrorMessage } from '@/src/lib/cch-fetch';
 import { getCchHealth, getCchOverview } from '@/src/services/cch';
 import { cchConfigState, saveCchConfig } from '@/src/store/cch-config';
+import { colors, glass, inputStyle, primaryButtonStyle, radius } from '@/src/theme';
 
 const { useSnapshot } = require('valtio/react');
 
@@ -75,26 +77,26 @@ export function CchSettingsScreen() {
       onRefresh={() => healthQuery.refetch().then(() => undefined)}
     >
       <ServiceModeControl />
-      <View style={{ borderRadius: 8, borderWidth: 1, borderColor: '#dfe5e1', backgroundColor: '#ffffff', padding: 14 }}>
+      <GlassSurface cornerRadius={radius.lg} contentStyle={{ padding: 14 }}>
         <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
-          <View style={{ width: 38, height: 38, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: healthy ? '#e7f2ee' : '#edf0ee' }}>
-            <Server color={healthy ? '#1f6759' : '#65706c'} size={18} />
+          <View style={{ width: 38, height: 38, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', backgroundColor: glass.insetFill }}>
+            <Server color={healthy ? '#111315' : '#5f6468'} size={18} />
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={{ color: '#17201d', fontSize: 14, fontWeight: '700' }}>CCH 服务状态</Text>
-            <Text numberOfLines={1} style={{ marginTop: 3, color: '#65706c', fontSize: 12 }}>{config.baseUrl}</Text>
-            <Text style={{ marginTop: 5, color: healthy ? '#1f6759' : healthQuery.error ? '#b84a32' : '#65706c', fontSize: 11 }}>
+            <Text style={{ color: '#111315', fontSize: 14, fontWeight: '700' }}>CCH 服务状态</Text>
+            <Text numberOfLines={1} style={{ marginTop: 3, color: '#5f6468', fontSize: 12 }}>{config.baseUrl}</Text>
+            <Text style={{ marginTop: 5, color: healthy ? '#111315' : healthQuery.error ? '#d92d20' : '#5f6468', fontSize: 11 }}>
               {healthQuery.isLoading ? '正在检测' : healthy ? `服务正常${identity?.version ? ` · v${identity.version.replace(/^v/i, '')}` : ''}` : healthQuery.error ? getCchErrorMessage(healthQuery.error) : '等待检测'}
             </Text>
           </View>
         </View>
-      </View>
-      <View style={{ borderRadius: 8, borderWidth: 1, borderColor: '#dfe5e1', backgroundColor: '#ffffff', padding: 14 }}>
-        <Text style={{ color: '#17201d', fontSize: 16, fontWeight: '700' }}>CCH 管理连接</Text>
-        <Text style={{ marginTop: 4, color: '#65706c', fontSize: 11, lineHeight: 17 }}>CCH Admin Key 仅用于本机连接，网页端不会持久化保存。</Text>
+      </GlassSurface>
+      <GlassSurface cornerRadius={radius.lg} contentStyle={{ padding: 14 }}>
+        <Text style={{ color: '#111315', fontSize: 16, fontWeight: '700' }}>CCH 管理连接</Text>
+        <Text style={{ marginTop: 4, color: '#5f6468', fontSize: 11, lineHeight: 17 }}>CCH Admin Key 仅用于本机连接，网页端不会持久化保存。</Text>
         <View style={{ marginTop: 14, gap: 13 }}>
           <View>
-            <Text style={{ marginBottom: 7, color: '#65706c', fontSize: 12, fontWeight: '600' }}>CCH 地址</Text>
+            <Text style={{ marginBottom: 7, color: '#5f6468', fontSize: 12, fontWeight: '600' }}>CCH 地址</Text>
             <Controller
               control={form.control}
               name="baseUrl"
@@ -103,17 +105,17 @@ export function CchSettingsScreen() {
                   value={value}
                   onChangeText={onChange}
                   placeholder="https://cch.cacr.site"
-                  placeholderTextColor="#89928e"
+                  placeholderTextColor="#8b9094"
                   autoCapitalize="none"
                   autoCorrect={false}
                   keyboardType="url"
-                  style={{ minHeight: 46, borderRadius: 8, borderWidth: 1, borderColor: '#dfe5e1', backgroundColor: '#edf0ee', paddingHorizontal: 13, color: '#17201d', fontSize: 14 }}
+                  style={inputStyle}
                 />
               )}
             />
           </View>
           <View>
-            <Text style={{ marginBottom: 7, color: '#65706c', fontSize: 12, fontWeight: '600' }}>CCH Admin Key</Text>
+            <Text style={{ marginBottom: 7, color: '#5f6468', fontSize: 12, fontWeight: '600' }}>CCH Admin Key</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Controller
                 control={form.control}
@@ -123,27 +125,27 @@ export function CchSettingsScreen() {
                     value={value}
                     onChangeText={onChange}
                     placeholder="输入 CCH Admin Key"
-                    placeholderTextColor="#89928e"
+                    placeholderTextColor="#8b9094"
                     autoCapitalize="none"
                     autoCorrect={false}
                     secureTextEntry={!showApiKey}
-                    style={{ flex: 1, minHeight: 46, borderRadius: 8, borderWidth: 1, borderColor: '#dfe5e1', backgroundColor: '#edf0ee', paddingHorizontal: 13, color: '#17201d', fontSize: 14 }}
+                    style={[inputStyle, { flex: 1 }]}
                   />
                 )}
               />
-              <Pressable accessibilityLabel={showApiKey ? '隐藏 CCH Admin Key' : '显示 CCH Admin Key'} accessibilityRole="button" onPress={() => setShowApiKey((value) => !value)} style={({ pressed }) => ({ width: 46, height: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 8, backgroundColor: '#edf0ee', opacity: pressed ? 0.7 : 1 })}>
-                {showApiKey ? <EyeOff color="#65706c" size={18} /> : <Eye color="#65706c" size={18} />}
+              <Pressable accessibilityLabel={showApiKey ? '隐藏 CCH Admin Key' : '显示 CCH Admin Key'} accessibilityRole="button" onPress={() => setShowApiKey((value) => !value)} style={({ pressed }) => ({ width: 46, height: 46, alignItems: 'center', justifyContent: 'center', borderRadius: 8, backgroundColor: '#f2f3f3', opacity: pressed ? 0.7 : 1 })}>
+                {showApiKey ? <EyeOff color="#5f6468" size={18} /> : <Eye color="#5f6468" size={18} />}
               </Pressable>
             </View>
           </View>
           {form.formState.errors.baseUrl || form.formState.errors.apiKey ? (
-            <View style={{ borderRadius: 8, backgroundColor: '#fff1ed', paddingHorizontal: 12, paddingVertical: 10 }}>
-              <Text style={{ color: '#b84a32', fontSize: 12 }}>{form.formState.errors.baseUrl?.message || form.formState.errors.apiKey?.message}</Text>
+            <View style={{ borderRadius: radius.md, backgroundColor: colors.dangerSoft, paddingHorizontal: 12, paddingVertical: 10 }}>
+              <Text style={{ color: '#d92d20', fontSize: 12 }}>{form.formState.errors.baseUrl?.message || form.formState.errors.apiKey?.message}</Text>
             </View>
           ) : null}
           {connectionMessage ? (
-            <View style={{ borderRadius: 8, backgroundColor: connectionState === 'success' ? '#e7f2ee' : '#fff1ed', paddingHorizontal: 12, paddingVertical: 10 }}>
-              <Text style={{ color: connectionState === 'success' ? '#1f6759' : '#b84a32', fontSize: 12 }}>{connectionMessage}</Text>
+            <View style={{ borderRadius: radius.md, backgroundColor: connectionState === 'success' ? glass.insetFill : colors.dangerSoft, paddingHorizontal: 12, paddingVertical: 10 }}>
+              <Text style={{ color: connectionState === 'success' ? '#111315' : '#d92d20', fontSize: 12 }}>{connectionMessage}</Text>
             </View>
           ) : null}
           <Pressable
@@ -151,19 +153,19 @@ export function CchSettingsScreen() {
             accessibilityRole="button"
             disabled={connectionState === 'checking'}
             onPress={form.handleSubmit(saveConnection)}
-            style={({ pressed }) => ({ minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, borderRadius: 8, backgroundColor: '#1f6759', opacity: connectionState === 'checking' ? 0.55 : pressed ? 0.78 : 1 })}
+            style={({ pressed }) => [primaryButtonStyle, { opacity: connectionState === 'checking' ? 0.55 : pressed ? 0.78 : 1 }]}
           >
             {connectionState === 'checking' ? <ActivityIndicator color="#ffffff" size="small" /> : <Save color="#ffffff" size={16} />}
             <Text style={{ color: '#ffffff', fontSize: 13, fontWeight: '700' }}>{connectionState === 'checking' ? '正在验证' : '保存并验证'}</Text>
           </Pressable>
         </View>
-      </View>
-      <View style={{ borderRadius: 8, borderWidth: 1, borderColor: '#dfe5e1', backgroundColor: '#ffffff', padding: 14 }}>
+      </GlassSurface>
+      <GlassSurface cornerRadius={radius.lg} contentStyle={{ padding: 14 }}>
         <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 9 }}>
-          <KeyRound color="#65706c" size={16} />
-          <Text style={{ flex: 1, color: '#65706c', fontSize: 11, lineHeight: 18 }}>CCH 模式只显示 CCH 管理接口已提供的监控和只读列表，避免把 Sub2API 的运行设置或写操作错误地发送到 CCH。</Text>
+          <KeyRound color="#5f6468" size={16} />
+          <Text style={{ flex: 1, color: '#5f6468', fontSize: 11, lineHeight: 18 }}>CCH 模式只显示 CCH 管理接口已提供的监控和只读列表，避免把 Sub2API 的运行设置或写操作错误地发送到 CCH。</Text>
         </View>
-      </View>
+      </GlassSurface>
     </ScreenShell>
   );
 }

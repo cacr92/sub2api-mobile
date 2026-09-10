@@ -5,6 +5,7 @@ import type {
   CchHealth,
   CchModelPricePage,
   CchOverview,
+  CchProvider,
   CchProviderHealth,
   CchProviderList,
   CchProviderSlots,
@@ -64,7 +65,10 @@ const cchProviderSchema = z.object({
   id: z.number().int().positive(),
   name: z.string(),
   isEnabled: z.boolean(),
+  priority: z.number().int().optional().default(0),
+  priorityLocked: z.boolean().optional().default(false),
   providerType: z.string().optional(),
+  groupTag: z.string().nullable().optional(),
   costMultiplier: nonNegativeNumber.optional(),
   upstreamBillingProbeEnabled: z.boolean().optional(),
   upstreamBillingProbe: cchUpstreamBillingProbeSchema.nullable().optional(),
@@ -179,6 +183,24 @@ const cchProxyStatusSchema = z.object({
     userId: z.number().int().positive(),
     userName: z.string(),
     activeCount: z.number().int().min(0),
+    activeRequests: z.array(z.object({
+      requestId: z.number().int().positive(),
+      keyName: z.string(),
+      providerId: z.number().int().positive(),
+      providerName: z.string(),
+      model: z.string(),
+      startTime: nonNegativeNumber,
+      duration: nonNegativeNumber,
+    }).passthrough()).optional(),
+    lastRequest: z.object({
+      requestId: z.number().int().positive(),
+      keyName: z.string(),
+      providerId: z.number().int().positive(),
+      providerName: z.string(),
+      model: z.string(),
+      endTime: nonNegativeNumber,
+      elapsed: nonNegativeNumber,
+    }).passthrough().nullable().optional(),
   }).passthrough()),
 }).passthrough();
 
@@ -218,13 +240,6 @@ export async function getCchHealth(): Promise<CchServerIdentity> {
 
 export function getCchOverview() {
   return cchFetch<unknown>('/api/v1/dashboard/overview').then((body) => parseCchResponse<CchOverview>(cchOverviewSchema, body));
-}
-
-export function getCchConcurrentSessions() {
-  return cchFetch<unknown>('/api/v1/dashboard/concurrent-sessions').then((body) => {
-    const parsed = parseCchResponse(z.object({ count: z.number().int().min(0) }).passthrough(), body);
-    return parsed.count;
-  });
 }
 
 export function getCchRealtime() {
@@ -269,6 +284,20 @@ export function resetCchProviderCircuit(providerId: number) {
   return cchFetch<unknown>(`/api/v1/providers/${providerId}/circuit:reset`, {
     method: 'POST',
   }).then((body) => parseCchResponse(z.object({ ok: z.literal(true) }).passthrough(), body));
+}
+
+export function resetCchProviderCircuitsBatch(providerIds: number[]) {
+  return cchFetch<unknown>('/api/v1/providers/circuits:batchReset', {
+    method: 'POST',
+    body: JSON.stringify({ providerIds }),
+  }).then((body) => parseCchResponse(z.object({ resetCount: z.number().int().min(0) }).passthrough(), body));
+}
+
+export function setCchProviderPriorityLocked(providerId: number, locked: boolean) {
+  return cchFetch<unknown>(`/api/v1/providers/${providerId}/priority-lock`, {
+    method: 'PATCH',
+    body: JSON.stringify({ locked }),
+  }).then((body) => parseCchResponse<CchProvider>(cchProviderSchema, body));
 }
 
 export function getCchUsers(query?: string) {

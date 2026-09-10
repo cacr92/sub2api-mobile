@@ -14,6 +14,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 
 import { ScreenShell } from '@/src/components/screen-shell';
 import { getModelPlaza } from '@/src/services/admin';
 import { adminConfigState, hasAuthenticatedAdminSession } from '@/src/store/admin-config';
+import { radius, shadow } from '@/src/theme';
 import type {
   ModelPlazaGroup,
   ModelPlazaModel,
@@ -25,17 +26,17 @@ import type {
 const { useSnapshot } = require('valtio/react');
 
 const colors = {
-  page: '#f3f5f3',
+  page: '#ffffff',
   card: '#ffffff',
-  text: '#17201d',
-  subtext: '#65706c',
-  muted: '#8a948f',
-  border: '#dfe5e1',
-  primary: '#1f6759',
-  primarySoft: '#e7f2ee',
-  warning: '#8a5a12',
-  danger: '#b84a32',
-  dangerSoft: '#fff1ed',
+  text: '#111315',
+  subtext: '#5f6468',
+  muted: '#8b9094',
+  border: '#e8e9e9',
+  primary: '#111315',
+  primarySoft: '#f6f7f7',
+  warning: '#5f6468',
+  danger: '#d92d20',
+  dangerSoft: '#fdecea',
 };
 
 type FilterValue = number | 'all';
@@ -47,10 +48,10 @@ type PlatformTone = {
 
 function platformTone(platform: string): PlatformTone {
   const normalized = platform.trim().toLowerCase();
-  if (normalized.includes('openai')) return { accent: '#3f6f64', soft: '#e8f1ee' };
-  if (normalized.includes('anthropic') || normalized.includes('claude')) return { accent: '#8a5a12', soft: '#fff3da' };
-  if (normalized.includes('gemini') || normalized.includes('google')) return { accent: '#4267a8', soft: '#eaf0fb' };
-  if (normalized.includes('grok') || normalized.includes('xai')) return { accent: '#735b8d', soft: '#f1ebf7' };
+  if (normalized.includes('openai')) return { accent: '#111315', soft: '#f6f7f7' };
+  if (normalized.includes('anthropic') || normalized.includes('claude')) return { accent: '#5f6468', soft: '#f6f7f7' };
+  if (normalized.includes('gemini') || normalized.includes('google')) return { accent: '#111315', soft: '#f6f7f7' };
+  if (normalized.includes('grok') || normalized.includes('xai')) return { accent: '#111315', soft: '#f6f7f7' };
   return { accent: colors.primary, soft: colors.primarySoft };
 }
 
@@ -325,7 +326,7 @@ function GroupSection({ group, collapsed, onToggle }: { group: ModelPlazaGroup; 
     : '';
 
   return (
-    <View style={{ borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card }}>
+    <View style={{ borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)', backgroundColor: 'rgba(255,255,255,0.78)', borderRadius: radius.md }}>
       <Pressable
         accessibilityLabel={`${group.name}${collapsed ? '，展开' : '，收起'}`}
         accessibilityRole="button"
@@ -339,8 +340,8 @@ function GroupSection({ group, collapsed, onToggle }: { group: ModelPlazaGroup; 
               <View style={{ borderRadius: 6, backgroundColor: tone.accent, paddingHorizontal: 7, paddingVertical: 3 }}>
                 <Text style={{ color: '#ffffff', fontSize: 10, fontWeight: '700' }}>{group.platform || '未知平台'}</Text>
               </View>
-              {group.is_exclusive ? <Badge label="专属" color="#735b8d" background="#f1ebf7" /> : null}
-              {group.subscription_type === 'subscription' ? <Badge label="订阅" color="#4267a8" background="#eaf0fb" /> : null}
+              {group.is_exclusive ? <Badge label="专属" color="#111315" background="#f6f7f7" /> : null}
+              {group.subscription_type === 'subscription' ? <Badge label="订阅" color="#111315" background="#f6f7f7" /> : null}
             </View>
             <View style={{ marginTop: 7, flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
               {customRate ? <Text style={{ color: colors.muted, fontSize: 11, textDecorationLine: 'line-through' }}>{formatRate(group.rate_multiplier)}</Text> : null}
@@ -470,7 +471,7 @@ export function ModelPlazaScreen() {
       ) : (
         <>
           {query.data?.description?.trim() ? (
-            <View style={{ borderLeftWidth: 3, borderLeftColor: colors.primary, backgroundColor: colors.card, paddingHorizontal: 13, paddingVertical: 11 }}>
+            <View style={{ borderLeftWidth: 3, borderLeftColor: colors.primary, backgroundColor: 'rgba(255,255,255,0.78)', borderRadius: radius.md, paddingHorizontal: 13, paddingVertical: 11 }}>
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
                 <Info color={colors.primary} size={15} />
                 <Text selectable style={{ flex: 1, color: colors.subtext, fontSize: 12, lineHeight: 19 }}>{query.data.description.trim()}</Text>
@@ -553,7 +554,7 @@ function StatePanel({
   danger?: boolean;
 }) {
   return (
-    <View style={{ alignItems: 'center', borderWidth: 1, borderColor: danger ? '#efc9bd' : colors.border, backgroundColor: danger ? colors.dangerSoft : colors.card, paddingHorizontal: 20, paddingVertical: 28 }}>
+    <View style={{ alignItems: 'center', borderWidth: 1, borderColor: danger ? '#fdecea' : colors.border, backgroundColor: danger ? colors.dangerSoft : colors.card, paddingHorizontal: 20, paddingVertical: 28 }}>
       {icon}
       <Text style={{ marginTop: 10, color: danger ? colors.danger : colors.text, fontSize: 15, fontWeight: '700' }}>{title}</Text>
       <Text style={{ marginTop: 6, color: colors.subtext, fontSize: 12, lineHeight: 18, textAlign: 'center' }}>{message}</Text>

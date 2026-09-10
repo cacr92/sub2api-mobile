@@ -41,15 +41,15 @@ type LoginConnectionFormProps = {
 };
 
 const colors = {
-  page: '#f4efe4',
-  card: '#fbf8f2',
-  mutedCard: '#f1ece2',
-  primary: '#1d5f55',
-  text: '#16181a',
-  subtext: '#6f665c',
-  border: '#e7dfcf',
-  dangerBg: '#fbf1eb',
-  danger: '#c25d35',
+  page: '#f6f7f7',
+  card: '#ffffff',
+  mutedCard: '#f6f7f7',
+  primary: '#111315',
+  text: '#111315',
+  subtext: '#5f6468',
+  border: '#e8e9e9',
+  dangerBg: '#fdecea',
+  danger: '#d92d20',
 };
 
 function getSub2ApiConnectionErrorMessage(error: unknown) {
@@ -135,7 +135,7 @@ function LoginConnectionForm({ mode, baseUrl, adminKey }: LoginConnectionFormPro
                 onChange(text);
               }}
               placeholder={isCch ? 'https://cch.cacr.site' : '例如：https://api.example.com'}
-              placeholderTextColor="#9b9081"
+              placeholderTextColor="#8b9094"
               autoCapitalize="none"
               autoCorrect={false}
               keyboardType="url"
@@ -162,7 +162,7 @@ function LoginConnectionForm({ mode, baseUrl, adminKey }: LoginConnectionFormPro
                   onChange(text);
                 }}
                 placeholder={isCch ? '输入 CCH Admin Key' : 'admin-xxxxxxxx'}
-                placeholderTextColor="#9b9081"
+                placeholderTextColor="#8b9094"
                 autoCapitalize="none"
                 autoCorrect={false}
                 secureTextEntry={!showAdminKey}
@@ -182,7 +182,7 @@ function LoginConnectionForm({ mode, baseUrl, adminKey }: LoginConnectionFormPro
                 onPress={() => setShowAdminKey((value) => !value)}
                 style={{ backgroundColor: colors.border, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10 }}
               >
-                <Text style={{ fontSize: 12, fontWeight: '700', color: '#4e463e' }}>{showAdminKey ? '隐藏' : '显示'}</Text>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#111315' }}>{showAdminKey ? '隐藏' : '显示'}</Text>
               </Pressable>
             </View>
           )}
@@ -204,11 +204,11 @@ function LoginConnectionForm({ mode, baseUrl, adminKey }: LoginConnectionFormPro
       <Pressable
         accessibilityLabel="进入应用"
         accessibilityRole="button"
-        style={{ backgroundColor: connectionState === 'checking' ? '#7ca89f' : colors.primary, borderRadius: 18, paddingVertical: 15, alignItems: 'center' }}
+        style={{ backgroundColor: connectionState === 'checking' ? '#5f6468' : colors.primary, borderRadius: 18, paddingVertical: 15, alignItems: 'center' }}
         disabled={connectionState === 'checking'}
         onPress={handleSubmit(connect)}
       >
-        <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700' }}>{connectionState === 'checking' ? '连接中...' : '进入应用'}</Text>
+        <Text style={{ color: '#ffffff', fontSize: 15, fontWeight: '700' }}>{connectionState === 'checking' ? '连接中...' : '进入应用'}</Text>
       </Pressable>
     </View>
   );

@@ -64,6 +64,38 @@
 - 部署结束后，在确认新实例健康、Nginx 已切流、旧实例连接排空且回滚保留期已满足后，逐项删除本次已验证的临时构建/暂存/传输资源。禁止使用未审计的广泛清理命令；清理前必须确认目标不属于三个正式服务栈或其持久化数据。
 - 若生产机出现资源压力或健康检查失败，先停止隔离的临时资源并验证正式栈状态。不得为恢复构建或清理缓存而重启正式服务；主机重启、强制关机或救援模式必须获得用户当次明确授权。
 
+## CCH 零服务器构建与蓝绿部署复盘
+
+### 本地构建与镜像传输
+
+- Apple Silicon 上仅以 QEMU 执行 CCH 的 AMD64 `bun install` 曾以 `exit 134` 崩溃。不得因此退回生产服务器构建；优先使用真正的 AMD64 CI/构建机。确需本机临时构建时，先确认 Lima Rosetta 中的 AMD64 Bun 可执行，再以 Buildx 构建。
+- Rosetta 可用时，仅在本轮临时 Dockerfile 中使用 `# syntax=docker/dockerfile:1-labs` 与 `RUN --device=lima-vm.io/rosetta=cached ...`，并用 `docker buildx build --allow device --platform linux/amd64` 构建。不得为解决本机构建兼容性而改变正式生产 Dockerfile 的运行语义。
+- Lima 虚拟机中的 `127.0.0.1` 是虚拟机自身，不是 macOS 宿主机。构建依赖需经宿主代理时，先在 VM 内用 `curl` 预检；应使用 `host.lima.internal` 等宿主映射地址，而不是盲目复用宿主的回环代理地址。代理不通时修复构建机网络，不得改为让服务器下载依赖或构建。
+- 构建结束后必须用 `docker image inspect` 核验镜像 `Os/Architecture` 为 `linux/amd64`。镜像传输采用本机 `docker save`、记录 SHA-256、上传、服务器复算 SHA-256、`docker load`、再次核验镜像 ID 和架构的顺序；只有镜像成功导入并可检查后，才能删除服务器传输包。
+
+### Green 实例、端口与 Compose
+
+- CCH 的宿主机端口是动态运行信息。每次部署前先现场读取 Nginx 上游、`docker compose ps` 和 `ss -ltn`；不得把任何一次 Blue 或 Green 的实际端口写成固定规则或据此猜测下次端口。
+- Green 只能绑定一个已确认空闲的宿主机回环端口，绝不直接暴露到公网。启动前须以 `docker compose ... config --quiet` 验证合并后的配置，并检查最终端口映射。
+- Green 若通过 `extends` 继承正式 `app`，Compose 的列表字段会追加而不是覆盖。`ports` 必须使用 `!override` 替换，且 `extends.file` 指向正式 Compose 文件、`service` 指向 `app`；否则 Green 会同时继承 Blue 端口，触发 `Bind ... port is already allocated`。
+- Green 启动只可使用 `docker compose ... up -d --no-deps green`，不得重启既有 PostgreSQL、Redis 或 Blue。Green 存在期间不得使用 `--remove-orphans`，以免删除仍在承载流量或处于回滚窗口的实例。
+
+### 迁移、健康检查与并行任务
+
+- CCH 的任何生产写操作前，先在 `/opt/claude-code-hub/backups` 创建带时间戳的 PostgreSQL 自定义格式备份，并用 `pg_restore -l` 验证可读；对当前 Compose 与 CCH Nginx 站点也保留可辨识时间戳的精确副本。不得复制 `.env` 或任何敏感内容到仓库、脚本、日志、截图或回复。
+- CCH 集群服务按容器 `HOSTNAME` 对应的内部地址监听。Docker healthcheck 和容器内验证应请求 `http://${HOSTNAME:-127.0.0.1}:3000/...`，不能假设 `127.0.0.1:3000` 一定可达。
+- `/api/v1/health` 只证明 API 路由可达；切流门槛必须同时要求 `/api/health` 稳定为 `healthy`，并确认 database、Redis、proxy 三个组件都是 `up`。Redis 使用 `enableOfflineQueue=false` 时，异步连接尚未完成的首次详细检查可能短暂为 `degraded`，应重试至稳定状态，不能将首次 HTTP 200 或首次 `degraded` 作为最终结论。
+- 未登录页面能渲染只证明公开页面可达，不等同于供应商管理、倍率探测、自动排序等受保护功能已验收。受保护 UI 或管理 API 的验收必须在用户授权的认证会话内完成。
+- Blue 与 Green 并存时，两边都会启动后台调度器。部署前必须确认倍率探测、自动排序等写入任务具备跨进程 Redis/数据库锁；无法证明存在分布式锁时，不得在双实例窗口触发全量探测、批量排序、熔断恢复或其他业务写操作，应先关闭该调度器或改用不并行运行应用的方案。
+
+### Nginx 切流、回归正式服务与精确清理
+
+- 切流前备份当前 CCH Nginx 站点文件；只替换经现场确认的一条 `proxy_pass` 上游。`nginx -t` 成功后仅执行平滑 reload，不得为切流重启 Nginx；若测试失败，reload 前恢复刚才的精确备份。
+- 切换后必须通过内部健康、公开 `/api/health`、公开 `/api/v1/health` 和页面响应检查，并以 `ss` 确认旧端口不再有已建立连接后，才能结束 Blue。生产验收优先只读，不得为了证明功能而改变真实供应商排序、倍率数据或熔断状态。
+- Green 通过验证后不能长期替代正式 `app` 服务。应在 Green 承载流量时备份并更新正式 Compose 的镜像引用，重建规范 `app` 并在规范回环端口通过健康检查，再平滑将 Nginx 切回规范端口；等待 Green 排空和回滚窗口结束后，才精确删除 Green。
+- `docker compose up app` 可能提示 Green 是 orphan，这不是自动清理许可。清理前逐项确认 CCH 容器、镜像、卷、Compose 覆盖文件与传输包的归属；只能删除已排空的 Green、无容器引用的旧 CCH 镜像、已导入的 tar、Green 覆盖文件和本次专用本地构建器/VM。
+- 禁止 `docker system prune -a`、宽泛镜像清理和跨栈清理。必须保留 CCH 的当前镜像、Nginx、PostgreSQL、Redis、持久化数据卷及回滚所需备份；不得借 CCH 部署操作 Sub2API 或 CaCrFeedFormula 的资源。
+
 ## 生产功能状态
 
 - `POST /api/v1/admin/accounts/upstream-costs/today` 已随私有 `v0.1.168` 部署并完成真实数据验证。
